@@ -1,0 +1,244 @@
+datasource db {
+  provider = "sqlite"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Accommodation {
+  id           String        @id @default(uuid())
+  slug         String        @unique
+  name         String        // e.g. "Scout Camp Zone 1", "Wood Tent #3"
+  type         String        // "SCOUT_ZONE", "INDIVIDUAL_CAMP", "WOOD_TENT", "BUNGALOW"
+  pricingType  String        // "PER_PERSON_PER_DAY", "PER_PERSON_PER_NIGHT", "PER_UNIT_PER_NIGHT"
+  basePrice    Float
+  minCapacity  Int           @default(1)
+  maxCapacity  Int
+  bookings     Booking[]
+  addons       AccommodationAddon[]
+  images       AccommodationImage[]
+}
+
+model AccommodationImage {
+  id               String        @id @default(uuid())
+  accommodationId  String
+  accommodation    Accommodation @relation(fields: [accommodationId], references: [id], onDelete: Cascade)
+  imageUrl         String
+  order            Int           @default(0)
+}
+
+model AccommodationAddon {
+  id            String   @id @default(uuid())
+  accommodationId String
+  accommodation Accommodation @relation(fields: [accommodationId], references: [id], onDelete: Cascade)
+  name          String   // e.g. "Extra Tent Rent", "Sleeping Bag", "Firewood Bundle"
+  price         Float
+  priceType     String   // "ONCE", "PER_NIGHT"
+  selections    BookingAddonSelection[]
+}
+
+model Booking {
+  id              String         @id @default(uuid())
+  accommodationId String
+  accommodation   Accommodation  @relation(fields: [accommodationId], references: [id])
+  customerName    String
+  customerEmail   String
+  customerPhone   String
+  startDate       DateTime
+  endDate         DateTime
+  peopleCount     Int
+  totalPrice      Float
+  status          String         // e.g. "PENDING", "DEPOSIT_PAID", "FULL_PAID", "CONFIRMED", "CANCELLED", "DONE"
+  createdAt       DateTime       @default(now())
+  addons          BookingAddonSelection[]
+}
+
+model BookingAddonSelection {
+  id         String             @id @default(uuid())
+  bookingId  String
+  booking    Booking            @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  addonId    String
+  addon      AccommodationAddon @relation(fields: [addonId], references: [id], onDelete: Cascade)
+  quantity   Int
+}
+
+model RestaurantZone {
+  id          String   @id @default(uuid())
+  slug        String   @unique
+  name        String   // e.g. "Fireplace", "Terrace", "Playground", "Indoor"
+  description String?
+  capacity    Int      @default(60)
+  price       Float    @default(0)
+  minCapacity Int      @default(1)
+  daysOpen    String   @default("ALL")
+  openHour    Int      @default(12)
+  coverImage  String?  // Cover background image for page header
+  tables      RestaurantTable[]
+  images      RestaurantZoneImage[]
+}
+
+model RestaurantZoneImage {
+  id         String         @id @default(uuid())
+  zoneId     String
+  zone       RestaurantZone @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+  imageUrl   String
+  order      Int            @default(0)
+}
+
+model RestaurantTable {
+  id                String           @id @default(uuid())
+  number            Int              @unique
+  zoneId            String
+  zone              RestaurantZone   @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+  capacity          Int
+  mergedWithTableId String?          // Reference to other table if combined
+  assignedStaffId   String?          // Staff allocated to table by Admin
+  assignedStaff     Staff?           @relation(fields: [assignedStaffId], references: [id])
+  orders            Order[]
+}
+
+model Staff {
+  id       String            @id @default(uuid())
+  name     String
+  role     String            // "WAITER", "KITCHEN", "BAR", "SHISHA", "ADMIN"
+  tables   RestaurantTable[]
+}
+
+model RestaurantBooking {
+  id            String   @id @default(uuid())
+  customerName  String
+  customerEmail String
+  customerPhone String
+  bookingDate   DateTime
+  timeSlot      String   // e.g. "12:00 - 14:00"
+  zone          String   // Zone name
+  peopleCount   Int
+  status        String   // "PENDING", "CONFIRMED", "CANCELLED"
+}
+
+model Event {
+  id             String         @id @default(uuid())
+  slug           String         @unique
+  title          String
+  description    String
+  date           DateTime
+  price          Float          // 0 if free, > 0 for ticketed events
+  requiresTicket Boolean        @default(false)
+  capacity       Int            @default(100)
+  reservations   EventReservation[]
+}
+
+model EventReservation {
+  id            String   @id @default(uuid())
+  eventId       String
+  event         Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  customerName  String
+  customerEmail String
+  ticketCount   Int
+  paid          Boolean  @default(false)
+}
+
+model MenuCategory {
+  id        String     @id @default(uuid())
+  name      String     // e.g. "Grill", "Appetizers", "Soft Drinks", "Cocktails", "Shisha Premium"
+  menuItems MenuItem[]
+}
+
+model MenuItem {
+  id           String       @id @default(uuid())
+  name         String
+  description  String
+  price        Float
+  imageUrl     String?      // Support item photos for customer visualization
+  categoryId   String
+  category     MenuCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  stockItemId  String?      // Linked for auto-deduction
+  stockItem    StockItem?   @relation(fields: [stockItemId], references: [id])
+  orderItems   OrderItem[]
+}
+
+model Order {
+  id         String          @id @default(uuid())
+  tableId    String
+  table      RestaurantTable @relation(fields: [tableId], references: [id], onDelete: Cascade)
+  status     String          // "PENDING", "PREPARING", "READY_TO_SERVE", "SERVED", "PAID"
+  notes      String?
+  createdAt  DateTime        @default(now())
+  items      OrderItem[]
+  invoices   Invoice[]       // Support split table invoices (multiple invoices per table)
+}
+
+model OrderItem {
+  id         String     @id @default(uuid())
+  orderId    String
+  order      Order      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItemId String
+  menuItem   MenuItem   @relation(fields: [menuItemId], references: [id])
+  quantity   Int
+  seatNumber Int        @default(1) // Support assigning items to individual seats
+  status     String     // "PENDING", "PREPARING", "READY", "SERVED"
+  prepZone   String     // "KITCHEN_GRILL", "KITCHEN_COLD", "BAR", "SHISHA"
+  invoiceId  String?    // Binds item to a specific split invoice
+  invoice    Invoice?   @relation(fields: [invoiceId], references: [id])
+}
+
+model Invoice {
+  id          String      @id @default(uuid())
+  orderId     String
+  order       Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  invoiceName String      // e.g. "Seat 1 & 2 Check" or "Invoice A"
+  totalPrice  Float
+  status      String      // "UNPAID", "PAID"
+  items       OrderItem[]
+  createdAt   DateTime    @default(now())
+}
+
+model StockItem {
+  id             String     @id @default(uuid())
+  name           String
+  category       String     // "FOOD", "ALCOHOL", "BEVERAGE", "SHISHA_ITEM"
+  quantity       Int
+  unit           String     // "units", "grams", "liters"
+  minThreshold   Int        @default(15)
+  expirationDate DateTime?
+  menuItems      MenuItem[]
+  wasteLogs      WasteLog[]
+}
+
+model WasteLog {
+  id          String    @id @default(uuid())
+  stockItemId String
+  stockItem   StockItem @relation(fields: [stockItemId], references: [id], onDelete: Cascade)
+  quantity    Int
+  reason      String    // "EXPIRED", "SPOILED", "DAMAGED"
+  createdAt   DateTime  @default(now())
+}
+
+model Asset {
+  id          String     @id @default(uuid())
+  name        String     // e.g. "Chairs", "Tables", "Premium Tents"
+  totalQty    Int
+  allocations AssetAllocation[]
+}
+
+model AssetAllocation {
+  id          String     @id @default(uuid())
+  assetId     String
+  asset       Asset      @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  location    String     // "RESTAURANT", "CAMPGROUND", "RESERVE", "REPAIR", "DISCARDED"
+  quantity    Int
+  status      String     // "ACTIVE", "REPAIRING", "DISCARDED"
+}
+
+model LocalAttraction {
+  id          String   @id @default(uuid())
+  name        String
+  category    String   // e.g. "Nature Reserve", "Waterfalls & Cave", "UNESCO Heritage"
+  description String
+  imageUrl    String
+  location    String   // e.g. "Jaj Heights", "Tannourine", "Byblos Coast"
+  distance    String   // e.g. "10 mins hike", "25 mins drive", "35 mins drive"
+  details     String   // Extended historical details or guidelines for when clicked
+  externalUrl String   // Dynamic external URL for redirecting to detail guide
+}
