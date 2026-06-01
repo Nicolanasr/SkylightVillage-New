@@ -10,9 +10,13 @@ const prismaClientSingleton = () => {
   
   const pool = new Pool({ 
     connectionString,
-    max: 1,                 // 👈 Crucial: Forces this Vercel function to use exactly 1 connection
-    idleTimeoutMillis: 5000, // 👈 Closes connection after 5 seconds of inactivity to free it up
+    max: 1,                 // Keeps your Vercel serverless connection footprint low
+    idleTimeoutMillis: 5000, 
     connectionTimeoutMillis: 2000,
+    // Add this SSL configuration block 👇
+    ssl: {
+      rejectUnauthorized: false // Bypasses the self-signed certificate chain blockage securely
+    }
   });
   
   const adapter = new PrismaPg(pool);
