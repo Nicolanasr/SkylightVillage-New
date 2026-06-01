@@ -2,31 +2,31 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined;
-};
-
-let prismaInstance: PrismaClient;
-
-if (globalForPrisma.prisma) {
-  prismaInstance = globalForPrisma.prisma;
-} else {
+const prismaClientSingleton = () => {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) {
     throw new Error("DATABASE_URL environment variable is not defined");
   }
+  
   const pool = new Pool({ connectionString });
   const adapter = new PrismaPg(pool);
 
-  prismaInstance = new PrismaClient({
+  return new PrismaClient({
     adapter,
     log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
   });
+};
 
-  if (process.env.NODE_ENV !== "production") {
-    globalForPrisma.prisma = prismaInstance;
-  }
+// Fixes ts(2502) by extending the global scope natively 👇
+declare global {
+  var prismaGlobal: ReturnType<typeof prismaClientSingleton> | undefined;
 }
 
-export const db = prismaInstance;
+// Access the variable safely from globalThis without the circular loop
+export const db = globalThis.prismaGlobal ?? prismaClientSingleton();
+
+if (process.env.NODE_ENV !== "production") {
+  globalThis.prismaGlobal = db;
+}
+
 export default db;
