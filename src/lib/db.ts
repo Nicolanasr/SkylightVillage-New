@@ -8,7 +8,13 @@ const prismaClientSingleton = () => {
     throw new Error("DATABASE_URL environment variable is not defined");
   }
   
-  const pool = new Pool({ connectionString });
+  const pool = new Pool({ 
+    connectionString,
+    max: 1,                 // 👈 Crucial: Forces this Vercel function to use exactly 1 connection
+    idleTimeoutMillis: 5000, // 👈 Closes connection after 5 seconds of inactivity to free it up
+    connectionTimeoutMillis: 2000,
+  });
+  
   const adapter = new PrismaPg(pool);
 
   return new PrismaClient({
