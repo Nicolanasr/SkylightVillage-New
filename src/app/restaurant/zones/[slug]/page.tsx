@@ -3,21 +3,22 @@ import db from "@/lib/db";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import TableReservationModal from "@/components/TableReservationModal";
+import MobileRestaurantDrawer from "@/components/MobileRestaurantDrawer";
 import RestaurantZoneGallery from "@/components/RestaurantZoneGallery";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Compass, Users, CheckCircle, Flame, Star, ChevronRight } from "lucide-react";
+import { Compass, Users, CheckCircle, Flame, ChevronRight } from "lucide-react";
 import type { Metadata } from "next";
 
 export const revalidate = 0; // Fresh database query on load
 
 interface PageProps {
-    params: Promise<{ id: string }>;
+    params: Promise<{ slug: string }>;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-    const { id } = await params;
-    const zone = await db.restaurantZone.findUnique({ where: { id } });
+    const { slug } = await params;
+    const zone = await db.restaurantZone.findUnique({ where: { slug } });
     if (!zone) return { title: "Zone Not Found | Skylight Restaurant" };
 
     return {
@@ -28,10 +29,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function ZoneDetailPage({ params }: PageProps) {
-    const { id } = await params;
+    const { slug } = await params;
 
     const zone = await db.restaurantZone.findUnique({
-        where: { id },
+        where: { slug },
         include: {
             tables: {
                 orderBy: { number: "asc" },
@@ -53,15 +54,18 @@ export default async function ZoneDetailPage({ params }: PageProps) {
     // Calculate sum of table capacities
     const totalTablesCapacity = zone.tables.reduce((sum, t) => sum + t.capacity, 0);
 
+    const isPicnic = zone.name.toLowerCase().includes("diy") || zone.name.toLowerCase().includes("picnic");
+    const mobileMode: "RESTAURANT" | "OUTDOOR_DIY" = isPicnic ? "OUTDOOR_DIY" : "RESTAURANT";
+
     return (
         <>
             <Navbar />
 
             {/* Header / Hero */}
-            <section 
+            <section
                 className="bg-skylight-green text-[#fafbfa] py-24 px-4 md:px-8 relative overflow-hidden bg-cover bg-center"
-                style={{ 
-                    backgroundImage: zone.coverImage ? `url(${zone.coverImage})` : undefined 
+                style={{
+                    backgroundImage: zone.coverImage ? `url(${zone.coverImage})` : undefined
                 }}
             >
                 {/* Contrast-enhancing elegant background gradient overlay */}
@@ -82,7 +86,7 @@ export default async function ZoneDetailPage({ params }: PageProps) {
                     </div>
 
                     <span className="text-[10px] font-bold tracking-widest text-skylight-gold uppercase drop-shadow-sm">
-                        Dine & Sip Experience
+                        Dine &amp; Sip Experience
                     </span>
                     <h1 className="text-3xl md:text-5xl font-display font-extrabold mt-2 tracking-tight leading-tight drop-shadow-md">
                         {zone.name}
@@ -93,7 +97,7 @@ export default async function ZoneDetailPage({ params }: PageProps) {
 
             {/* Main Content */}
             <section className="py-16 px-4 md:px-8">
-                <div className="container mx-auto max-w-5xl grid grid-cols-1 lg:grid-cols-3 gap-12">
+                <div className="container mx-auto max-w-5xl grid grid-cols-1 lg:grid-cols-3 gap-12 relative z-10">
                     {/* Scenery details */}
                     <div className="lg:col-span-2 space-y-8">
                         <div className="bg-white rounded-3xl border border-skylight-green/10 shadow-sm p-6 md:p-8 space-y-6">
@@ -161,16 +165,16 @@ export default async function ZoneDetailPage({ params }: PageProps) {
                         </div>
                     </div>
 
-                    {/* Table reservation action card */}
-                    <div className="lg:col-span-1">
+                    {/* Table reservation action card — desktop only */}
+                    <div className="lg:col-span-1 hidden lg:block lg:sticky lg:top-8 h-fit">
                         <div className="bg-skylight-dark/95 text-white rounded-3xl p-6 md:p-8 shadow-2xl border border-skylight-gold/20 flex flex-col items-center text-center space-y-6">
                             <Flame className="w-10 h-10 text-skylight-gold animate-bounce" />
                             <div className="space-y-2">
                                 <h3 className="font-display font-extrabold text-lg text-white">
-                                    {zone.name.toLowerCase().includes("diy") || zone.name.toLowerCase().includes("picnic") ? "Book Your Picnic Spot" : "Join the Cabin Gathering"}
+                                    {isPicnic ? "Book Your Picnic Spot" : "Join the Cabin Gathering"}
                                 </h3>
                                 <p className="text-[11px] text-gray-400 font-light leading-relaxed">
-                                    {zone.name.toLowerCase().includes("diy") || zone.name.toLowerCase().includes("picnic")
+                                    {isPicnic
                                         ? "Reserve a beautiful, scenic open-air spot at Jaj. Sturdy wooden tables and chairs prepared for your arrival. Forgot something? There is a fully stocked store right in the village!"
                                         : `Reserve a table instantly in the ${zone.name} dining zone. Tables are held for 20 minutes from the selected timeslot. No fee required.`
                                     }
@@ -181,8 +185,8 @@ export default async function ZoneDetailPage({ params }: PageProps) {
                                 <TableReservationModal
                                     zones={allZones}
                                     initialZoneId={zone.id}
-                                    initialMode={zone.name.toLowerCase().includes("diy") || zone.name.toLowerCase().includes("picnic") ? "OUTDOOR_DIY" : "RESTAURANT"}
-                                    buttonText={zone.name.toLowerCase().includes("diy") || zone.name.toLowerCase().includes("picnic") ? "BOOK PICNIC SPOT" : "RESERVE DINING TABLE (FREE)"}
+                                    initialMode={mobileMode}
+                                    buttonText={isPicnic ? "BOOK PICNIC SPOT" : "RESERVE DINING TABLE (FREE)"}
                                     buttonClassName="w-full flex items-center justify-center gap-2 premium-btn bg-skylight-gold text-skylight-dark hover:bg-skylight-green hover:text-white font-display font-bold text-[10px] tracking-widest py-3.5 transition-all shadow-md cursor-pointer"
                                 />
                             </div>
@@ -190,6 +194,14 @@ export default async function ZoneDetailPage({ params }: PageProps) {
                     </div>
                 </div>
             </section>
+
+            {/* Mobile Bottom Reservation Drawer (visible on mobile/tablet only) */}
+            <MobileRestaurantDrawer
+                zones={allZones}
+                initialZoneId={zone.id}
+                initialMode={mobileMode}
+                zoneName={zone.name}
+            />
 
             <Footer />
         </>

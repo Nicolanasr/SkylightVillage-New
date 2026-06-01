@@ -16,6 +16,7 @@ interface Addon {
 
 interface Accommodation {
     id: string;
+    slug: string;
     name: string;
     type: string;
     pricingType: string;
@@ -357,7 +358,7 @@ export default function StayCatalog({
                                         {acc.addons.length} Addons Available
                                     </span>
                                     <Link
-                                        href={`/stay/${acc.id}?startDate=${filterStartDate}&guests=${filterGuests}`}
+                                        href={`/stay/${acc.slug}?startDate=${filterStartDate}&guests=${filterGuests}`}
                                         className="premium-btn bg-skylight-green hover:bg-skylight-gold text-white hover:text-skylight-dark font-display font-bold text-[10px] tracking-widest px-6 py-3 transition-colors text-center"
                                     >
                                         VIEW DETAILS & BOOK

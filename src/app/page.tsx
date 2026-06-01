@@ -351,7 +351,7 @@ export default async function HomePage() {
                             {zones.map((z) => (
                                 <Link
                                     key={z.id}
-                                    href={`/restaurant/zones/${z.id}`}
+                                    href={`/restaurant/zones/${z.slug}`}
                                     className="flex items-center justify-between bg-skylight-green-light/20 p-3.5 rounded-xl border border-skylight-green/5 hover:border-skylight-gold/50 transition-all hover:bg-skylight-green-light/40 group"
                                 >
                                     <div>

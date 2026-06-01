@@ -61,7 +61,7 @@ export default async function RestaurantPage() {
                         {zones.map((zone) => (
                             <Link
                                 key={zone.id}
-                                href={`/restaurant/zones/${zone.id}`}
+                                href={`/restaurant/zones/${zone.slug}`}
                                 className="bg-[#fafbfa]/40 rounded-3xl border border-skylight-green/10 overflow-hidden hover-lift flex flex-col justify-between group shadow-sm hover:shadow-xl transition-all duration-300"
                             >
                                 <div>

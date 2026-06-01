@@ -21,6 +21,7 @@ interface AccommodationImage {
 
 interface Accommodation {
     id: string;
+    slug: string;
     name: string;
     type: string;
     pricingType: string;
@@ -135,7 +136,7 @@ export default function AccommodationsSlider({ accommodations }: Props) {
                         </div>
                         <div className="p-6 bg-[#fafbfa] border-t border-gray-100">
                             <Link
-                                href={`/stay/${acc.id}`}
+                                href={`/stay/${acc.slug}`}
                                 className="w-full inline-block text-center premium-btn bg-skylight-green text-white hover:bg-skylight-gold hover:text-skylight-dark font-display font-bold text-[10px] tracking-widest py-3 transition-all"
                             >
                                 VIEW DETAILS &amp; BOOK

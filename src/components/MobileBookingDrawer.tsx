@@ -39,7 +39,7 @@ export default function MobileBookingDrawer({
     return (
         <>
             {/* Bottom Sticky Mobile Navigation Bar */}
-            <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-gray-100 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] px-6 py-4 flex items-center justify-between pb-safe-bottom">
+            <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-gray-100 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] px-5 py-3 flex items-center justify-between">
                 <div className="flex flex-col text-left">
                     <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest block mb-0.5">
                         Reserve Stay
@@ -73,29 +73,40 @@ export default function MobileBookingDrawer({
 
             {/* Slide-Up Bottom Sheet Drawer Overlay */}
             {isOpen && (
-                <div 
-                    className="fixed inset-0 z-50 bg-skylight-dark/60 backdrop-blur-sm flex items-end justify-center p-0 transition-opacity duration-300"
+                <div
+                    className="fixed inset-0 z-50 bg-skylight-dark/60 backdrop-blur-sm flex items-end"
                     onClick={() => setIsOpen(false)}
                 >
-                    <div 
-                        className="bg-white w-full max-w-lg rounded-t-3xl shadow-2xl border-t border-skylight-green/10 p-6 pb-8 relative max-h-[90vh] overflow-y-auto flex flex-col justify-start animate-slide-up"
+                    <div
+                        className="bg-white w-full rounded-t-3xl shadow-2xl border-t border-skylight-green/10 flex flex-col animate-slide-up max-h-[88vh]"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Pull Bar Indicator */}
-                        <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-5" />
+                        <div className="flex-shrink-0 pt-3 pb-1 flex justify-center">
+                            <div className="w-10 h-1 bg-gray-200 rounded-full" />
+                        </div>
 
-                        {/* Close button in top-right */}
-                        <button
-                            type="button"
-                            onClick={() => setIsOpen(false)}
-                            className="absolute top-4 right-4 text-gray-400 hover:text-skylight-green w-8 h-8 rounded-full bg-gray-50 hover:bg-gray-100 flex items-center justify-center border-0 cursor-pointer transition-colors"
-                            aria-label="Close booking form"
-                        >
-                            <X className="w-4 h-4" />
-                        </button>
+                        {/* Fixed header */}
+                        <div className="flex-shrink-0 flex items-center justify-between px-5 py-3 border-b border-gray-100">
+                            <div>
+                                <span className="text-[9px] font-bold text-skylight-gold uppercase tracking-widest">Reserve Stay</span>
+                                <h3 className="font-display font-extrabold text-base text-skylight-green leading-tight">
+                                    {accommodation.name}
+                                </h3>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setIsOpen(false)}
+                                className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center border-0 cursor-pointer transition-colors text-gray-400 hover:text-skylight-green flex-shrink-0"
+                                aria-label="Close booking form"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
 
-                        <div className="overflow-y-auto">
-                            <StayBookingForm 
+                        {/* Scrollable body */}
+                        <div className="overflow-y-auto flex-1 px-5 py-4 pb-safe-bottom">
+                            <StayBookingForm
                                 accommodation={accommodation}
                                 initialStartDate={initialStartDate}
                                 initialGuests={initialGuests}
