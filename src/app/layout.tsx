@@ -31,6 +31,8 @@ export const metadata: Metadata = {
   ],
 };
 
+const showSimulator = process.env.NEXT_PUBLIC_SHOW_SIMULATOR === "true";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -43,8 +45,9 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col font-sans bg-[#fafbfa] text-[#1c271c]">
         {children}
-        <RoleSimulator />
+        {showSimulator && <RoleSimulator />}
       </body>
     </html>
   );
 }
+

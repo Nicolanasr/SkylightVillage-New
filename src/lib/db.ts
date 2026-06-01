@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
@@ -7,22 +8,25 @@ const globalForPrisma = globalThis as unknown as {
 
 let prismaInstance: PrismaClient;
 
-const dbUrl = process.env.DATABASE_URL || "file:./prisma/dev.db";
-
-if (dbUrl.includes("supabase") || dbUrl.startsWith("prisma+postgres") || dbUrl.startsWith("postgres")) {
-  prismaInstance = new PrismaClient({
-    log: ["error"],
-  });
+if (globalForPrisma.prisma) {
+  prismaInstance = globalForPrisma.prisma;
 } else {
-  // Local SQLite development with Prisma 7.x Driver Adapter
-  const adapter = new PrismaBetterSqlite3({ url: dbUrl });
+  const connectionString = process.env.DATABASE_URL;
+  if (!connectionString) {
+    throw new Error("DATABASE_URL environment variable is not defined");
+  }
+  const pool = new Pool({ connectionString });
+  const adapter = new PrismaPg(pool);
+
   prismaInstance = new PrismaClient({
     adapter,
-    log: process.env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
+    log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
   });
+
+  if (process.env.NODE_ENV !== "production") {
+    globalForPrisma.prisma = prismaInstance;
+  }
 }
 
-export const db = globalForPrisma.prisma ?? prismaInstance;
-
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = db;
+export const db = prismaInstance;
 export default db;
