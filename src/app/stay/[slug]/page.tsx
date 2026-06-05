@@ -251,7 +251,7 @@ export default async function StayDetailPage({ params, searchParams }: PageProps
                     </div>
 
                     {/* Booking Form Card (Hidden on mobile, sticky on desktop) */}
-                    <div className="lg:col-span-1 hidden lg:block lg:sticky lg:top-8 h-fit">
+                    <div className="lg:col-span-1 hidden lg:block lg:top-8 h-fit">
                         <StayBookingForm
                             accommodation={acc}
                             initialStartDate={resolvedSearchParams.startDate}

@@ -133,6 +133,18 @@ export default function AdminDashboardClient({
   const [restZoneFilter, setRestZoneFilter] = useState("ALL");
 
   const [calType, setCalType] = useState<"all" | "stays" | "restaurant">("all");
+  const [calGroupSearch, setCalGroupSearch] = useState("");
+  const [calMinPersons, setCalMinPersons] = useState<number | "">("");
+  // Multi-select arrays for calendar filter (OR logic)
+  const [calStayStatuses, setCalStayStatuses] = useState<string[]>([]);
+  const [calRestStatuses, setCalRestStatuses] = useState<string[]>([]);
+  const [calAccFilters, setCalAccFilters] = useState<string[]>([]);   // accommodation IDs
+  const [calZoneFilters, setCalZoneFilters] = useState<string[]>([]);  // zone names
+  // Dropdown open states for multi-select pickers
+  const [stayStatusDropdownOpen, setStayStatusDropdownOpen] = useState(false);
+  const [restStatusDropdownOpen, setRestStatusDropdownOpen] = useState(false);
+  const [accDropdownOpen, setAccDropdownOpen] = useState(false);
+  const [zoneDropdownOpen, setZoneDropdownOpen] = useState(false);
   
   const [reviewSearch, setReviewSearch] = useState("");
   const [reviewStatusFilter, setReviewStatusFilter] = useState("all");
@@ -156,6 +168,29 @@ export default function AdminDashboardClient({
     const matchesStatus = stayStatusFilter === "ALL" || b.status === stayStatusFilter;
     const matchesAcc = stayAccFilter === "ALL" || b.accommodationId === stayAccFilter;
     return matchesSearch && matchesStatus && matchesAcc;
+  });
+
+  // Calendar-specific filtered bookings (uses separate multi-select filters)
+  const calFilteredBookings = bookings.filter((b) => {
+    const matchesSearch =
+      b.customerName.toLowerCase().includes(staySearch.toLowerCase()) ||
+      b.customerEmail.toLowerCase().includes(staySearch.toLowerCase()) ||
+      b.customerPhone.toLowerCase().includes(staySearch.toLowerCase());
+    const matchesStatus = calStayStatuses.length === 0 || calStayStatuses.includes(b.status);
+    const matchesAcc = calAccFilters.length === 0 || calAccFilters.includes(b.accommodationId);
+    const matchesGroup = !calGroupSearch || (b.groupName && b.groupName.toLowerCase().includes(calGroupSearch.toLowerCase()));
+    const matchesPersons = calMinPersons === "" || b.peopleCount >= Number(calMinPersons);
+    return matchesSearch && matchesStatus && matchesAcc && matchesGroup && matchesPersons;
+  });
+
+  const calFilteredRestBookings = restaurantBookings.filter((r) => {
+    const matchesSearch =
+      r.customerName.toLowerCase().includes(restSearch.toLowerCase()) ||
+      r.customerEmail.toLowerCase().includes(restSearch.toLowerCase()) ||
+      r.customerPhone.toLowerCase().includes(restSearch.toLowerCase());
+    const matchesStatus = calRestStatuses.length === 0 || calRestStatuses.includes(r.status);
+    const matchesZone = calZoneFilters.length === 0 || calZoneFilters.includes(r.zone);
+    return matchesSearch && matchesStatus && matchesZone;
   });
 
   const filteredRestBookings = restaurantBookings.filter((r) => {
@@ -221,8 +256,8 @@ export default function AdminDashboardClient({
   const [editingItem, setEditingItem] = useState<any>(null); // holds item for update, or null for create
 
   // Form Fields State
-  const [accForm, setAccForm] = useState({ name: "", type: "WOOD_TENT", pricingType: "PER_UNIT_PER_NIGHT", basePrice: 0, minCapacity: 1, maxCapacity: 4, description: "", amenities: "" });
-  const [stayForm, setStayForm] = useState({ accommodationId: "", customerName: "", customerEmail: "", customerPhone: "", startDate: "", endDate: "", peopleCount: 2, status: "PENDING", notes: "" });
+  const [accForm, setAccForm] = useState({ name: "", type: "WOOD_TENT", pricingType: "PER_UNIT_PER_NIGHT", basePrice: 0, minCapacity: 1, maxCapacity: 4, description: "", amenities: "", nightThresholdEnabled: false, nightThreshold: 5 });
+  const [stayForm, setStayForm] = useState({ accommodationId: "", customerName: "", customerEmail: "", customerPhone: "", groupName: "", startDate: "", endDate: "", peopleCount: 2, status: "PENDING", notes: "" });
   const [restForm, setRestForm] = useState({ customerName: "", customerEmail: "", customerPhone: "", bookingDate: "", timeSlot: "12:00 PM", zone: "Skylight Restaurant", peopleCount: 2, status: "PENDING", notes: "" });
   const [eventForm, setEventForm] = useState({ title: "", description: "", date: "", price: 0, requiresTicket: false, capacity: 100 });
   const [hikeForm, setHikeForm] = useState({ name: "", category: "Nature Reserve", description: "", imageUrl: "", location: "", distance: "", details: "", externalUrl: "" });
@@ -454,6 +489,8 @@ export default function AdminDashboardClient({
       maxCapacity: item.maxCapacity,
       description: item.description || "",
       amenities: item.amenities || "",
+      nightThresholdEnabled: item.nightThresholdEnabled ?? false,
+      nightThreshold: item.nightThreshold ?? 5,
     });
     setModalType("accommodation");
   };
@@ -465,6 +502,7 @@ export default function AdminDashboardClient({
       customerName: item.customerName,
       customerEmail: item.customerEmail,
       customerPhone: item.customerPhone,
+      groupName: item.groupName || "",
       startDate: new Date(item.startDate).toISOString().split("T")[0],
       endDate: new Date(item.endDate).toISOString().split("T")[0],
       peopleCount: item.peopleCount,
@@ -611,6 +649,26 @@ export default function AdminDashboardClient({
     }
   };
 
+  // Accommodation type abbreviation for calendar badges
+  const getAccTypeBadge = (type: string) => {
+    switch (type) {
+      case "SCOUT_ZONE": return "LG";
+      case "INDIVIDUAL_CAMP": return "IND";
+      case "WOOD_TENT": return "TENT";
+      case "BUNGALOW": return "BNG";
+      default: return type.substring(0, 3);
+    }
+  };
+
+  // Toggle a status in a multi-status array
+  const toggleCalStatus = (arr: string[], setArr: (v: string[]) => void, status: string) => {
+    if (arr.includes(status)) {
+      setArr(arr.filter(s => s !== status));
+    } else {
+      setArr([...arr, status]);
+    }
+  };
+
   return (
     <div className="space-y-8 animate-fadeIn">
       
@@ -724,40 +782,318 @@ export default function AdminDashboardClient({
             </div>
 
             {/* Calendar Filters Row */}
-            <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm shadow-slate-100">
-              <div className="flex items-center gap-3">
-                <span className="text-sm font-bold text-slate-500">View Resource:</span>
-                <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
-                  {(["all", "stays", "restaurant"] as const).map((type) => (
-                    <button
-                      key={type}
-                      onClick={() => setCalType(type)}
-                      className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition cursor-pointer ${
-                        calType === type
-                          ? "bg-indigo-600 text-white shadow"
-                          : "text-slate-500 hover:text-slate-800"
-                      }`}
-                    >
-                      {type === "all" ? "Show All" : type === "stays" ? "Stays Only" : "Dining Only"}
-                    </button>
-                  ))}
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm shadow-slate-100 space-y-5">
+              {/* Row 1: Resource toggle + quick clear */}
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-bold text-slate-500">View Resource:</span>
+                  <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
+                    {(["all", "stays", "restaurant"] as const).map((type) => (
+                      <button
+                        key={type}
+                        onClick={() => setCalType(type)}
+                        className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition cursor-pointer ${
+                          calType === type
+                            ? "bg-indigo-600 text-white shadow"
+                            : "text-slate-500 hover:text-slate-800"
+                        }`}
+                      >
+                        {type === "all" ? "Show All" : type === "stays" ? "Stays Only" : "Dining Only"}
+                      </button>
+                    ))}
+                  </div>
                 </div>
+
+                {/* Clear all calendar filters */}
+                {(staySearch || restSearch || stayAccFilter !== "ALL" || restZoneFilter !== "ALL" || calGroupSearch || calMinPersons !== "" || calStayStatuses.length > 0 || calRestStatuses.length > 0 || calAccFilters.length > 0 || calZoneFilters.length > 0) && (
+                  <button
+                    onClick={() => {
+                      setStaySearch("");
+                      setRestSearch("");
+                      setStayAccFilter("ALL");
+                      setRestZoneFilter("ALL");
+                      setCalGroupSearch("");
+                      setCalMinPersons("");
+                      setCalStayStatuses([]);
+                      setCalRestStatuses([]);
+                      setCalAccFilters([]);
+                      setCalZoneFilters([]);
+                      setAccDropdownOpen(false);
+                      setZoneDropdownOpen(false);
+                    }}
+                    className="px-3 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-600 rounded-xl text-xs font-bold uppercase tracking-wider transition cursor-pointer"
+                  >
+                    Clear All
+                  </button>
+                )}
               </div>
-              
-              <div className="flex flex-wrap gap-4 items-center">
-                <input
-                  type="text"
-                  placeholder="Search guest name on calendar..."
-                  value={calType === "restaurant" ? restSearch : staySearch}
-                  onChange={(e) => {
-                    if (calType === "restaurant") {
-                      setRestSearch(e.target.value);
-                    } else {
-                      setStaySearch(e.target.value);
-                    }
-                  }}
-                  className="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 w-64 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500 outline-none"
-                />
+
+              {/* Row 2: Search + Accommodation/Zone + Group + Persons */}
+              <div className="flex flex-wrap gap-4 items-end">
+                {/* Guest name search */}
+                <div className="w-44">
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Guest Name</label>
+                  <input
+                    type="text"
+                    placeholder="Search guest..."
+                    value={calType === "restaurant" ? restSearch : staySearch}
+                    onChange={(e) => {
+                      if (calType === "all") {
+                        setStaySearch(e.target.value);
+                        setRestSearch(e.target.value);
+                      } else if (calType === "restaurant") {
+                        setRestSearch(e.target.value);
+                      } else {
+                        setStaySearch(e.target.value);
+                      }
+                    }}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500 outline-none"
+                  />
+                </div>
+
+                {/* Stays: Accommodation multi-select */}
+                {(calType === "all" || calType === "stays") && (
+                  <div className="relative">
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Accommodation</label>
+                    <button
+                      type="button"
+                      onClick={() => { setAccDropdownOpen(o => !o); setZoneDropdownOpen(false); setStayStatusDropdownOpen(false); setRestStatusDropdownOpen(false); }}
+                      className="flex items-center gap-2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 font-bold hover:bg-slate-100 transition cursor-pointer min-w-[190px] justify-between"
+                    >
+                      <span className="truncate max-w-[150px]">
+                        {calAccFilters.length === 0
+                          ? "All accommodations"
+                          : calAccFilters.length === 1
+                            ? accommodations.find(a => a.id === calAccFilters[0])?.name || "1 selected"
+                            : `${calAccFilters.length} selected`}
+                      </span>
+                      <span className="text-slate-400 text-[10px] flex-shrink-0">{accDropdownOpen ? "▲" : "▼"}</span>
+                    </button>
+                    {accDropdownOpen && (
+                      <div className="absolute z-50 top-full left-0 mt-1 w-56 bg-white border border-slate-200 rounded-xl shadow-xl p-2 space-y-0.5 max-h-60 overflow-y-auto">
+                        {accommodations.map((acc) => {
+                          const isActive = calAccFilters.includes(acc.id);
+                          return (
+                            <button
+                              key={acc.id}
+                              type="button"
+                              onClick={() => toggleCalStatus(calAccFilters, setCalAccFilters, acc.id)}
+                              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-left transition cursor-pointer ${
+                                isActive ? "bg-indigo-50 text-indigo-700" : "text-slate-600 hover:bg-slate-50"
+                              }`}
+                            >
+                              <span className="w-2 h-2 rounded-full flex-shrink-0 bg-indigo-300" />
+                              <span className="truncate">{acc.name}</span>
+                              {isActive && <span className="ml-auto text-indigo-500 font-black flex-shrink-0">✓</span>}
+                            </button>
+                          );
+                        })}
+                        {calAccFilters.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => setCalAccFilters([])}
+                            className="w-full px-3 py-1.5 text-[10px] text-slate-400 hover:text-red-500 font-bold text-left transition cursor-pointer border-t border-slate-100 mt-1 pt-2"
+                          >
+                            Clear selection
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Stays: Group name search */}
+                {(calType === "all" || calType === "stays") && (
+                  <div className="w-40">
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Group Name</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. GSS Jounieh"
+                      value={calGroupSearch}
+                      onChange={(e) => setCalGroupSearch(e.target.value)}
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500 outline-none"
+                    />
+                  </div>
+                )}
+
+                {/* Stays: Min persons filter */}
+                {(calType === "all" || calType === "stays") && (
+                  <div className="w-28">
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Min Persons</label>
+                    <input
+                      type="number"
+                      min={1}
+                      placeholder="e.g. 10"
+                      value={calMinPersons}
+                      onChange={(e) => setCalMinPersons(e.target.value === "" ? "" : Number(e.target.value))}
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+                )}
+
+                {/* Restaurant: Dining Zone multi-select */}
+                {(calType === "all" || calType === "restaurant") && (
+                  <div className="relative">
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Dining Zone</label>
+                    <button
+                      type="button"
+                      onClick={() => { setZoneDropdownOpen(o => !o); setAccDropdownOpen(false); setStayStatusDropdownOpen(false); setRestStatusDropdownOpen(false); }}
+                      className="flex items-center gap-2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 font-bold hover:bg-slate-100 transition cursor-pointer min-w-[180px] justify-between"
+                    >
+                      <span className="truncate max-w-[140px]">
+                        {calZoneFilters.length === 0
+                          ? "All dining zones"
+                          : calZoneFilters.length === 1
+                            ? calZoneFilters[0]
+                            : `${calZoneFilters.length} selected`}
+                      </span>
+                      <span className="text-slate-400 text-[10px] flex-shrink-0">{zoneDropdownOpen ? "▲" : "▼"}</span>
+                    </button>
+                    {zoneDropdownOpen && (
+                      <div className="absolute z-50 top-full left-0 mt-1 w-52 bg-white border border-slate-200 rounded-xl shadow-xl p-2 space-y-0.5 max-h-60 overflow-y-auto">
+                        {restaurantZones.map((zone) => {
+                          const isActive = calZoneFilters.includes(zone.name);
+                          return (
+                            <button
+                              key={zone.id}
+                              type="button"
+                              onClick={() => toggleCalStatus(calZoneFilters, setCalZoneFilters, zone.name)}
+                              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-left transition cursor-pointer ${
+                                isActive ? "bg-indigo-50 text-indigo-700" : "text-slate-600 hover:bg-slate-50"
+                              }`}
+                            >
+                              <span className="w-2 h-2 rounded-full flex-shrink-0 bg-rose-300" />
+                              <span className="truncate">{zone.name}</span>
+                              {isActive && <span className="ml-auto text-indigo-500 font-black flex-shrink-0">✓</span>}
+                            </button>
+                          );
+                        })}
+                        {calZoneFilters.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => setCalZoneFilters([])}
+                            className="w-full px-3 py-1.5 text-[10px] text-slate-400 hover:text-red-500 font-bold text-left transition cursor-pointer border-t border-slate-100 mt-1 pt-2"
+                          >
+                            Clear selection
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Row 3: Multi-select status dropdown pickers */}
+              <div className="flex flex-wrap gap-4 items-start">
+                {/* Stay statuses */}
+                {(calType === "all" || calType === "stays") && (
+                  <div className="relative">
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Stay Statuses</label>
+                    <button
+                      type="button"
+                      onClick={() => { setStayStatusDropdownOpen(o => !o); setRestStatusDropdownOpen(false); }}
+                      className="flex items-center gap-2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 font-bold hover:bg-slate-100 transition cursor-pointer min-w-[180px] justify-between"
+                    >
+                      <span>
+                        {calStayStatuses.length === 0
+                          ? "All statuses"
+                          : calStayStatuses.map(s => s.replace(/_/g, " ")).join(", ")}
+                      </span>
+                      <span className="text-slate-400 text-[10px]">{stayStatusDropdownOpen ? "▲" : "▼"}</span>
+                    </button>
+                    {stayStatusDropdownOpen && (
+                      <div className="absolute z-50 top-full left-0 mt-1 w-52 bg-white border border-slate-200 rounded-xl shadow-xl p-2 space-y-0.5">
+                        {["PENDING", "DEPOSIT_PAID", "FULL_PAID", "CONFIRMED", "CANCELLED"].map((status) => {
+                          const isActive = calStayStatuses.includes(status);
+                          const dotColor: Record<string, string> = {
+                            PENDING: "bg-amber-400",
+                            DEPOSIT_PAID: "bg-cyan-400",
+                            FULL_PAID: "bg-emerald-500",
+                            CONFIRMED: "bg-emerald-400",
+                            CANCELLED: "bg-red-400",
+                          };
+                          return (
+                            <button
+                              key={status}
+                              type="button"
+                              onClick={() => toggleCalStatus(calStayStatuses, setCalStayStatuses, status)}
+                              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-left transition cursor-pointer ${
+                                isActive ? "bg-indigo-50 text-indigo-700" : "text-slate-600 hover:bg-slate-50"
+                              }`}
+                            >
+                              <span className={`w-2 h-2 rounded-full flex-shrink-0 ${dotColor[status]}`} />
+                              {status.replace(/_/g, " ")}
+                              {isActive && <span className="ml-auto text-indigo-500 font-black">✓</span>}
+                            </button>
+                          );
+                        })}
+                        {calStayStatuses.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => setCalStayStatuses([])}
+                            className="w-full px-3 py-1.5 text-[10px] text-slate-400 hover:text-red-500 font-bold text-left transition cursor-pointer border-t border-slate-100 mt-1 pt-2"
+                          >
+                            Clear selection
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Restaurant statuses */}
+                {(calType === "all" || calType === "restaurant") && (
+                  <div className="relative">
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Dining Statuses</label>
+                    <button
+                      type="button"
+                      onClick={() => { setRestStatusDropdownOpen(o => !o); setStayStatusDropdownOpen(false); }}
+                      className="flex items-center gap-2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 font-bold hover:bg-slate-100 transition cursor-pointer min-w-[180px] justify-between"
+                    >
+                      <span>
+                        {calRestStatuses.length === 0
+                          ? "All statuses"
+                          : calRestStatuses.join(", ")}
+                      </span>
+                      <span className="text-slate-400 text-[10px]">{restStatusDropdownOpen ? "▲" : "▼"}</span>
+                    </button>
+                    {restStatusDropdownOpen && (
+                      <div className="absolute z-50 top-full left-0 mt-1 w-48 bg-white border border-slate-200 rounded-xl shadow-xl p-2 space-y-0.5">
+                        {["PENDING", "CONFIRMED", "CANCELLED"].map((status) => {
+                          const isActive = calRestStatuses.includes(status);
+                          const dotColor: Record<string, string> = {
+                            PENDING: "bg-amber-400",
+                            CONFIRMED: "bg-emerald-400",
+                            CANCELLED: "bg-red-400",
+                          };
+                          return (
+                            <button
+                              key={status}
+                              type="button"
+                              onClick={() => toggleCalStatus(calRestStatuses, setCalRestStatuses, status)}
+                              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-left transition cursor-pointer ${
+                                isActive ? "bg-indigo-50 text-indigo-700" : "text-slate-600 hover:bg-slate-50"
+                              }`}
+                            >
+                              <span className={`w-2 h-2 rounded-full flex-shrink-0 ${dotColor[status]}`} />
+                              {status}
+                              {isActive && <span className="ml-auto text-indigo-500 font-black">✓</span>}
+                            </button>
+                          );
+                        })}
+                        {calRestStatuses.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => setCalRestStatuses([])}
+                            className="w-full px-3 py-1.5 text-[10px] text-slate-400 hover:text-red-500 font-bold text-left transition cursor-pointer border-t border-slate-100 mt-1 pt-2"
+                          >
+                            Clear selection
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -773,8 +1109,8 @@ export default function AdminDashboardClient({
               {/* Calendar Grid Cells */}
               <div className="grid grid-cols-7 grid-rows-6 auto-rows-[140px] border-collapse bg-slate-50/20">
                 {calendarDays.map((cell, idx) => {
-                  const overlapsStays = (calType === "all" || calType === "stays") ? filteredBookings.filter((b) => checkStayOverlap(cell.date, b)) : [];
-                  const overlapsRest = (calType === "all" || calType === "restaurant") ? filteredRestBookings.filter((r) => checkRestOverlap(cell.date, r)) : [];
+                  const overlapsStays = (calType === "all" || calType === "stays") ? calFilteredBookings.filter((b) => checkStayOverlap(cell.date, b)) : [];
+                  const overlapsRest = (calType === "all" || calType === "restaurant") ? calFilteredRestBookings.filter((r) => checkRestOverlap(cell.date, r)) : [];
 
                   return (
                     <div
@@ -788,30 +1124,31 @@ export default function AdminDashboardClient({
                       {/* Booking badging inside cell */}
                       <div className="flex-1 flex flex-col gap-1.5 overflow-y-auto mt-1 scrollbar-none max-h-[100px]">
                         {/* Camp bookings */}
-                        {overlapsStays.map((booking) => (
-                          <div
-                            key={booking.id}
-                            onClick={() => initEditStay(booking)}
-                            className={`px-2 py-1 rounded text-[10px] font-bold border truncate cursor-pointer transition hover:brightness-95 ${getStatusColor(
-                              booking.status
-                            )}`}
-                            title={`Camp: ${booking.customerName} - ${booking.accommodation?.name || ""}`}
-                          >
-                            ⛺ {booking.customerName}
-                          </div>
-                        ))}
+                        {overlapsStays.map((booking) => {
+                          const zoneName = booking.accommodation?.name || "Stay";
+                          return (
+                            <div
+                              key={booking.id}
+                              onClick={() => initEditStay(booking)}
+                              className={`px-2 py-1 rounded text-[10px] font-bold border truncate cursor-pointer transition hover:brightness-95 ${getStatusColor(booking.status)}`}
+                              title={`${zoneName}${booking.groupName ? ` · ${booking.groupName}` : ""} · ${booking.customerName}`}
+                            >
+                              <span className="truncate block leading-tight">{zoneName}</span>
+                              <span className="truncate block text-[9px] opacity-80 leading-tight font-normal">{booking.groupName || booking.customerName}</span>
+                            </div>
+                          );
+                        })}
 
                         {/* Restaurant bookings */}
                         {overlapsRest.map((res) => (
                           <div
                             key={res.id}
                             onClick={() => initEditRest(res)}
-                            className={`px-2 py-1 rounded text-[10px] font-bold border truncate cursor-pointer transition hover:brightness-95 ${getStatusColor(
-                              res.status
-                            )}`}
-                            title={`Table: ${res.customerName} - ${res.timeSlot}`}
+                            className={`px-2 py-1 rounded text-[10px] font-bold border truncate cursor-pointer transition hover:brightness-95 ${getStatusColor(res.status)}`}
+                            title={`${res.zone} · ${res.customerName} · ${res.timeSlot}`}
                           >
-                            🍽️ {res.customerName} ({res.timeSlot.split(" ")[0]})
+                            <span className="truncate block leading-tight">{res.zone}</span>
+                            <span className="truncate block text-[9px] opacity-80 leading-tight font-normal">{res.customerName} · {res.timeSlot.split(" ")[0]}</span>
                           </div>
                         ))}
                       </div>
@@ -842,6 +1179,7 @@ export default function AdminDashboardClient({
                     customerName: "",
                     customerEmail: "",
                     customerPhone: "",
+                    groupName: "",
                     startDate: new Date().toISOString().split("T")[0],
                     endDate: new Date(Date.now() + 86400000).toISOString().split("T")[0],
                     peopleCount: 2,
@@ -933,6 +1271,12 @@ export default function AdminDashboardClient({
                           <div className="font-bold text-slate-800 text-base">{booking.customerName}</div>
                           <div className="text-xs text-slate-500 mt-0.5">{booking.customerEmail}</div>
                           <div className="text-xs text-slate-500 mt-0.5">{booking.customerPhone}</div>
+                          {booking.groupName && (
+                            <div className="text-xs text-indigo-600 mt-1 font-bold flex items-center gap-1">
+                              <span className="bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wide">Group</span>
+                              {booking.groupName}
+                            </div>
+                          )}
                           {booking.notes && (
                             <div className="text-xs text-indigo-600 mt-1.5 font-bold italic max-w-[240px] truncate" title={booking.notes}>
                               Note: {booking.notes}
@@ -1167,6 +1511,8 @@ export default function AdminDashboardClient({
                     maxCapacity: 4,
                     description: "",
                     amenities: "",
+                    nightThresholdEnabled: false,
+                    nightThreshold: 5,
                   });
                   setModalType("accommodation");
                 }}
@@ -1831,6 +2177,38 @@ export default function AdminDashboardClient({
                     placeholder="e.g. Spring Water, Campfire Area, Warm Showers"
                   />
                 </div>
+
+                {/* Night Threshold Pricing */}
+                <div className="bg-indigo-50/50 border border-indigo-100 rounded-xl p-4 space-y-3">
+                  <div className="flex items-center gap-3">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={accForm.nightThresholdEnabled}
+                        onChange={(e) => setAccForm({ ...accForm, nightThresholdEnabled: e.target.checked })}
+                        className="w-4 h-4 rounded accent-indigo-600"
+                      />
+                      <span className="font-bold text-slate-700 text-xs">Enable Night Rate Discount Pricing</span>
+                    </label>
+                  </div>
+                  <p className="text-[10px] text-slate-500 leading-relaxed">
+                    When enabled: if a booking is <strong>less than</strong> the threshold (e.g. 4 days), the daily rate applies normally. 
+                    If <strong>≥ threshold</strong>, the customer is charged for <em>(days − 1) nights</em> instead, showing a discount on the frontend.
+                  </p>
+                  {accForm.nightThresholdEnabled && (
+                    <div className="w-48">
+                      <label className="block font-bold text-slate-500 mb-1.5 text-xs">Threshold (min days to activate)</label>
+                      <input
+                        type="number"
+                        min={2}
+                        max={30}
+                        value={accForm.nightThreshold}
+                        onChange={(e) => setAccForm({ ...accForm, nightThreshold: Number(e.target.value) })}
+                        className="w-full px-3 py-2 bg-white border border-indigo-200 rounded-xl text-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none text-xs"
+                      />
+                    </div>
+                  )}
+                </div>
                 
                 <div className="flex gap-3 justify-end pt-4 border-t border-slate-100">
                   <button
@@ -2043,6 +2421,25 @@ export default function AdminDashboardClient({
                     ))}
                   </select>
                 </div>
+                {(() => {
+                  const selAcc = accommodations.find((a) => a.id === stayForm.accommodationId);
+                  if (selAcc?.type === "SCOUT_ZONE") {
+                    return (
+                      <div>
+                        <label className="block font-bold text-slate-500 mb-1.5">Group Name</label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="e.g. GSS Jounieh"
+                          value={stayForm.groupName}
+                          onChange={(e) => setStayForm({ ...stayForm, groupName: e.target.value })}
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none"
+                        />
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block font-bold text-slate-500 mb-1.5">Customer Name</label>

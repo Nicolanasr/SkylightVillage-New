@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { createStayBooking } from "@/app/actions";
 import CustomDatePicker from "./CustomDatePicker";
 import CustomDropdown from "./CustomDropdown";
-import { ShoppingBag, AlertTriangle, CheckCircle2, User, Mail, Phone, Loader2 } from "lucide-react";
+import { ShoppingBag, AlertTriangle, CheckCircle2, User, Mail, Phone, Loader2, Users } from "lucide-react";
 
 interface Addon {
     id: string;
@@ -22,6 +22,8 @@ interface Accommodation {
     minCapacity: number;
     maxCapacity: number;
     addons: Addon[];
+    nightThresholdEnabled?: boolean;
+    nightThreshold?: number;
 }
 
 interface StayBookingFormProps {
@@ -60,19 +62,35 @@ export default function StayBookingForm({
     const [bookingSuccess, setBookingSuccess] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
     const [calculatedPrice, setCalculatedPrice] = useState(0);
+    const [fullDailyPrice, setFullDailyPrice] = useState(0);
+    const [isNightlyDiscount, setIsNightlyDiscount] = useState(false);
 
-    // Calculate live pricing
+    // Calculate live pricing with night-threshold support
     useEffect(() => {
         const start = new Date(startDate);
         const end = new Date(endDate);
         const durationDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 3600 * 24));
         const duration = durationDays > 0 ? durationDays : 1;
 
+        // Night threshold: if enabled and duration >= threshold, charge for (duration-1) nights
+        const useNightlyRate =
+            accommodation.nightThresholdEnabled &&
+            duration >= (accommodation.nightThreshold ?? 5);
+        const billableUnits = useNightlyRate ? duration - 1 : duration;
+
         let baseCost = 0;
         if (accommodation.pricingType === "PER_PERSON_PER_DAY" || accommodation.pricingType === "PER_PERSON_PER_NIGHT") {
-            baseCost = accommodation.basePrice * peopleCount * duration;
+            baseCost = accommodation.basePrice * peopleCount * billableUnits;
         } else {
-            baseCost = accommodation.basePrice * duration;
+            baseCost = accommodation.basePrice * billableUnits;
+        }
+
+        // Also compute full daily total for strikethrough display
+        let fullDailyCost = 0;
+        if (accommodation.pricingType === "PER_PERSON_PER_DAY" || accommodation.pricingType === "PER_PERSON_PER_NIGHT") {
+            fullDailyCost = accommodation.basePrice * peopleCount * duration;
+        } else {
+            fullDailyCost = accommodation.basePrice * duration;
         }
 
         let addonsCost = 0;
@@ -81,13 +99,15 @@ export default function StayBookingForm({
             if (match) {
                 const itemCost =
                     match.priceType === "PER_NIGHT"
-                        ? match.price * sel.quantity * duration
+                        ? match.price * sel.quantity * billableUnits
                         : match.price * sel.quantity;
                 addonsCost += itemCost;
             }
         });
 
         setCalculatedPrice(baseCost + addonsCost);
+        setFullDailyPrice(fullDailyCost + addonsCost);
+        setIsNightlyDiscount(useNightlyRate ?? false);
     }, [accommodation, startDate, endDate, peopleCount, selectedAddons]);
 
     const toggleAddon = (addonId: string) => {
@@ -117,6 +137,7 @@ export default function StayBookingForm({
             customerName: (e.target as any).customerName.value,
             customerEmail: (e.target as any).customerEmail.value,
             customerPhone: (e.target as any).customerPhone.value,
+            groupName: accommodation.type === "SCOUT_ZONE" ? (e.target as any).groupName?.value : undefined,
             startDate,
             endDate,
             peopleCount,
@@ -246,6 +267,18 @@ export default function StayBookingForm({
                     Contact info:
                 </span>
                 <div className="space-y-3">
+                    {accommodation.type === "SCOUT_ZONE" && (
+                        <div className="relative">
+                            <Users className="w-4 h-4 text-skylight-gold absolute left-3 top-3.5" />
+                            <input
+                                required
+                                type="text"
+                                name="groupName"
+                                placeholder="Scout Group Name (e.g. GSS Jounieh)"
+                                className="w-full p-3 pl-9 rounded-xl bg-[#fafbfa] border border-gray-200 text-xs font-semibold text-skylight-green focus:outline-none focus:border-skylight-green"
+                            />
+                        </div>
+                    )}
                     <div className="relative">
                         <User className="w-4 h-4 text-skylight-gold absolute left-3 top-3.5" />
                         <input
@@ -285,9 +318,19 @@ export default function StayBookingForm({
                     <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest block mb-0.5">
                         Total Cost:
                     </span>
+                    {isNightlyDiscount && (
+                        <span className="block text-xs text-gray-400 line-through">
+                            ${fullDailyPrice.toFixed(2)}
+                        </span>
+                    )}
                     <span className="text-2xl font-display font-extrabold text-skylight-green">
                         ${calculatedPrice.toFixed(2)}
                     </span>
+                    {isNightlyDiscount && (
+                        <span className="block text-[9px] text-emerald-600 font-bold mt-0.5">
+                            🏷️ Nightly rate discount applied
+                        </span>
+                    )}
                 </div>
                 <button
                     type="submit"

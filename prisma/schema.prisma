@@ -15,8 +15,10 @@ model Accommodation {
   basePrice    Float
   minCapacity  Int           @default(1)
   maxCapacity  Int
-  description  String?
-  amenities    String?       // Comma-separated list of amenities, e.g. "WiFi, Hot Water, Campfire Grill"
+  description             String?
+  amenities               String?       // Comma-separated list of amenities, e.g. "WiFi, Hot Water, Campfire Grill"
+  nightThresholdEnabled   Boolean       @default(false)  // If true, applies nightly discount pricing for longer stays
+  nightThreshold          Int           @default(5)      // Minimum days to trigger nightly pricing (e.g. 5 means >= 5 days = nightly rate)
   bookings     Booking[]
   addons       AccommodationAddon[]
   images       AccommodationImage[]
@@ -47,6 +49,7 @@ model Booking {
   customerName    String
   customerEmail   String
   customerPhone   String
+  groupName       String?
   startDate       DateTime
   endDate         DateTime
   peopleCount     Int

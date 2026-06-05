@@ -9,6 +9,7 @@ export async function createStayBooking(data: {
   customerName: string;
   customerEmail: string;
   customerPhone: string;
+  groupName?: string;
   startDate: string;
   endDate: string;
   peopleCount: number;
@@ -43,14 +44,18 @@ export async function createStayBooking(data: {
     const daysCount = Math.ceil(timeDiff / (1000 * 3600 * 24));
     const duration = daysCount > 0 ? daysCount : 1;
 
+    // Night-threshold pricing: if enabled and duration >= threshold, charge for (duration - 1) nights instead of duration days
+    const useNightlyRate =
+      (acc as any).nightThresholdEnabled &&
+      duration >= ((acc as any).nightThreshold ?? 5);
+    const billableUnits = useNightlyRate ? duration - 1 : duration;
+
     let baseCost = 0;
-    if (acc.pricingType === "PER_PERSON_PER_DAY") {
-      baseCost = acc.basePrice * data.peopleCount * duration;
-    } else if (acc.pricingType === "PER_PERSON_PER_NIGHT") {
-      baseCost = acc.basePrice * data.peopleCount * duration;
+    if (acc.pricingType === "PER_PERSON_PER_DAY" || acc.pricingType === "PER_PERSON_PER_NIGHT") {
+      baseCost = acc.basePrice * data.peopleCount * billableUnits;
     } else {
       // PER_UNIT_PER_NIGHT
-      baseCost = acc.basePrice * duration;
+      baseCost = acc.basePrice * billableUnits;
     }
 
     // Addons Cost
@@ -80,6 +85,7 @@ export async function createStayBooking(data: {
         customerName: data.customerName,
         customerEmail: data.customerEmail,
         customerPhone: data.customerPhone,
+        groupName: data.groupName,
         startDate: start,
         endDate: end,
         peopleCount: data.peopleCount,
@@ -473,12 +479,14 @@ export async function transferAssetAllocation(
 }
 
 // 12. Fetch Locked Booking Dates for Accommodation
+// Only CONFIRMED / paid bookings block dates — PENDING does NOT block (allows new bookings while pending)
 export async function getAccommodationBookings(accommodationId: string) {
   try {
     const bookings = await db.booking.findMany({
       where: {
         accommodationId,
-        status: { not: "CANCELLED" },
+        // Only fully committed bookings lock the calendar — not pending or cancelled
+        status: { in: ["DEPOSIT_PAID", "FULL_PAID", "CONFIRMED"] },
       },
       select: {
         startDate: true,
@@ -490,7 +498,8 @@ export async function getAccommodationBookings(accommodationId: string) {
     bookings.forEach((b) => {
       let current = new Date(b.startDate);
       const end = new Date(b.endDate);
-      while (current < end) {
+      // Include the checkout date too — if booked Jun 4→Jun 7, days 4, 5, 6, 7 all show unavailable
+      while (current <= end) {
         const yyyy = current.getFullYear();
         const mm = String(current.getMonth() + 1).padStart(2, "0");
         const dd = String(current.getDate()).padStart(2, "0");

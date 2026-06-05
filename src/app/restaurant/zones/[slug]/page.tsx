@@ -166,7 +166,7 @@ export default async function ZoneDetailPage({ params }: PageProps) {
                     </div>
 
                     {/* Table reservation action card — desktop only */}
-                    <div className="lg:col-span-1 hidden lg:block lg:sticky lg:top-8 h-fit">
+                    <div className="lg:col-span-1 hidden lg:block lg:top-8 h-fit">
                         <div className="bg-skylight-dark/95 text-white rounded-3xl p-6 md:p-8 shadow-2xl border border-skylight-gold/20 flex flex-col items-center text-center space-y-6">
                             <Flame className="w-10 h-10 text-skylight-gold animate-bounce" />
                             <div className="space-y-2">

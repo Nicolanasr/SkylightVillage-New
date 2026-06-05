@@ -146,6 +146,8 @@ export async function createAccommodation(data: {
   maxCapacity: number;
   description?: string;
   amenities?: string;
+  nightThresholdEnabled?: boolean;
+  nightThreshold?: number;
 }) {
   try {
     const acc = await db.accommodation.create({
@@ -159,6 +161,8 @@ export async function createAccommodation(data: {
         maxCapacity: Number(data.maxCapacity),
         description: data.description || "",
         amenities: data.amenities || "",
+        nightThresholdEnabled: data.nightThresholdEnabled ?? false,
+        nightThreshold: Number(data.nightThreshold) || 5,
       }
     });
     revalidatePath("/");
@@ -183,6 +187,8 @@ export async function updateAccommodation(
     maxCapacity: number;
     description?: string;
     amenities?: string;
+    nightThresholdEnabled?: boolean;
+    nightThreshold?: number;
   }
 ) {
   try {
@@ -198,6 +204,8 @@ export async function updateAccommodation(
         maxCapacity: Number(data.maxCapacity),
         description: data.description || "",
         amenities: data.amenities || "",
+        nightThresholdEnabled: data.nightThresholdEnabled ?? false,
+        nightThreshold: Number(data.nightThreshold) || 5,
       }
     });
     revalidatePath("/");
@@ -237,6 +245,7 @@ export async function createBookingManual(data: {
   customerName: string;
   customerEmail: string;
   customerPhone: string;
+  groupName?: string;
   startDate: string;
   endDate: string;
   peopleCount: number;
@@ -255,11 +264,17 @@ export async function createBookingManual(data: {
     const daysCount = Math.ceil(timeDiff / (1000 * 3600 * 24));
     const duration = daysCount > 0 ? daysCount : 1;
 
+    // Apply night-threshold pricing: if enabled and duration >= threshold, charge for (duration-1) nights
+    const useNightlyRate =
+      (acc as any).nightThresholdEnabled &&
+      duration >= ((acc as any).nightThreshold ?? 5);
+    const billableUnits = useNightlyRate ? duration - 1 : duration;
+
     let totalPrice = 0;
     if (acc.pricingType === "PER_PERSON_PER_DAY" || acc.pricingType === "PER_PERSON_PER_NIGHT") {
-      totalPrice = acc.basePrice * Number(data.peopleCount) * duration;
+      totalPrice = acc.basePrice * Number(data.peopleCount) * billableUnits;
     } else {
-      totalPrice = acc.basePrice * duration;
+      totalPrice = acc.basePrice * billableUnits;
     }
 
     const booking = await db.booking.create({
@@ -268,6 +283,7 @@ export async function createBookingManual(data: {
         customerName: data.customerName,
         customerEmail: data.customerEmail,
         customerPhone: data.customerPhone,
+        groupName: data.groupName,
         startDate: start,
         endDate: end,
         peopleCount: Number(data.peopleCount),
@@ -293,6 +309,7 @@ export async function updateBookingDetails(
     customerName: string;
     customerEmail: string;
     customerPhone: string;
+    groupName?: string;
     startDate: string;
     endDate: string;
     peopleCount: number;
@@ -315,10 +332,15 @@ export async function updateBookingDetails(
 
     let totalPrice = booking.totalPrice;
     if (booking.accommodation) {
+      const useNightlyRate =
+        (booking.accommodation as any).nightThresholdEnabled &&
+        duration >= ((booking.accommodation as any).nightThreshold ?? 5);
+      const billableUnits = useNightlyRate ? duration - 1 : duration;
+
       if (booking.accommodation.pricingType === "PER_PERSON_PER_DAY" || booking.accommodation.pricingType === "PER_PERSON_PER_NIGHT") {
-        totalPrice = booking.accommodation.basePrice * Number(data.peopleCount) * duration;
+        totalPrice = booking.accommodation.basePrice * Number(data.peopleCount) * billableUnits;
       } else {
-        totalPrice = booking.accommodation.basePrice * duration;
+        totalPrice = booking.accommodation.basePrice * billableUnits;
       }
     }
 
@@ -328,6 +350,7 @@ export async function updateBookingDetails(
         customerName: data.customerName,
         customerEmail: data.customerEmail,
         customerPhone: data.customerPhone,
+        groupName: data.groupName,
         startDate: start,
         endDate: end,
         peopleCount: Number(data.peopleCount),

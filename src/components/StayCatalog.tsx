@@ -25,6 +25,8 @@ interface Accommodation {
     maxCapacity: number;
     addons: Addon[];
     description?: string | null;
+    nightThresholdEnabled?: boolean;
+    nightThreshold?: number;
 }
 
 interface SerializedBooking {
@@ -204,6 +206,7 @@ export default function StayCatalog({
             customerName: (e.target as any).customerName.value,
             customerEmail: (e.target as any).customerEmail.value,
             customerPhone: (e.target as any).customerPhone.value,
+            groupName: selectedAcc.type === "SCOUT_ZONE" ? (e.target as any).groupName?.value : undefined,
             startDate,
             endDate,
             peopleCount,
@@ -340,7 +343,7 @@ export default function StayCatalog({
                                     )}
 
                                     {/* Price Tag */}
-                                    <div className="border-t border-gray-100 pt-5 mt-auto flex items-baseline gap-2">
+                                    <div className="border-t border-gray-100 pt-5 mt-auto flex items-baseline gap-2 flex-wrap">
                                         <span className="text-3xl font-display font-extrabold text-skylight-green">
                                             ${acc.basePrice.toFixed(0)}
                                         </span>
@@ -351,6 +354,11 @@ export default function StayCatalog({
                                                     ? "per person / night"
                                                     : "per unit / night"}
                                         </span>
+                                        {acc.nightThresholdEnabled && (
+                                            <span className="ml-auto text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                                                🏷️ Extended stay discount ≥{acc.nightThreshold ?? 5} days
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
 
@@ -493,11 +501,23 @@ export default function StayCatalog({
                                     </div>
                                 )}
 
-                                {/* Contact Fields */}
+                                 {/* Contact Fields */}
                                 <div className="border-t border-gray-100 pt-6 space-y-4">
                                     <span className="block text-[10px] font-bold uppercase tracking-widest text-skylight-green">
                                         Contact Info
                                     </span>
+                                    {selectedAcc.type === "SCOUT_ZONE" && (
+                                        <div className="relative">
+                                            <Users className="w-4 h-4 text-skylight-gold absolute left-3 top-3.5" />
+                                            <input
+                                                required
+                                                type="text"
+                                                name="groupName"
+                                                placeholder="Scout Group Name (e.g. GSS Jounieh)"
+                                                className="w-full p-3 pl-9 rounded-lg bg-[#fafbfa] border border-gray-200 text-xs font-semibold text-skylight-green focus:outline-none focus:border-skylight-green"
+                                            />
+                                        </div>
+                                    )}
                                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                         <div className="relative">
                                             <User className="w-4 h-4 text-skylight-gold absolute left-3 top-3.5" />
