@@ -24,6 +24,7 @@ interface Accommodation {
     minCapacity: number;
     maxCapacity: number;
     addons: Addon[];
+    description?: string | null;
 }
 
 interface SerializedBooking {
@@ -326,8 +327,8 @@ export default function StayCatalog({
                                         {acc.name}
                                     </h3>
 
-                                    <p className="text-xs text-gray-500 font-light leading-relaxed mb-6">
-                                        Experience premium lodging at 1,200m altitude in Jaj. Mapped with private toilets, fresh spring water access, campfire pits, and pristine hiking boundaries.
+                                    <p className="text-xs text-gray-500 font-light leading-relaxed mb-6 whitespace-pre-line">
+                                        {acc.description || ""}
                                     </p>
 
                                     {/* dynamic constraints info */}

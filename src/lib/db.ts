@@ -10,9 +10,9 @@ const prismaClientSingleton = () => {
   
   const pool = new Pool({ 
     connectionString,
-    max: 1,                 // Keeps your Vercel serverless connection footprint low
-    idleTimeoutMillis: 5000, 
-    connectionTimeoutMillis: 2000,
+    max: 15,                 // Raised to allow concurrent queries in Promise.all without starvation
+    idleTimeoutMillis: 10000, 
+    connectionTimeoutMillis: 10000, // Safe 10-second margin to prevent early timeouts
     // Add this SSL configuration block 👇
     ssl: {
       rejectUnauthorized: false // Bypasses the self-signed certificate chain blockage securely

@@ -53,6 +53,8 @@ interface AccommodationWithDetails {
     maxCapacity: number;
     addons: Addon[];
     images: AccommodationImage[];
+    description?: string | null;
+    amenities?: string | null;
 }
 
 export default async function StayDetailPage({ params, searchParams }: PageProps) {
@@ -111,9 +113,31 @@ export default async function StayDetailPage({ params, searchParams }: PageProps
                             <h2 className="text-xl font-display font-extrabold text-skylight-green">
                                 Lodging Overview
                             </h2>
-                            <p className="text-xs text-gray-600 font-light leading-relaxed">
-                                Experience dynamic premium lodging situated at 1,200m altitude in Jaj, Mount Lebanon. Our facilities feature clean private toilet modules, fresh mountain spring water taps, campfire areas, and scenic mountain views.
+                            <p className="text-xs text-gray-600 font-light leading-relaxed whitespace-pre-line">
+                                {acc.description || "Experience dynamic premium lodging situated at 1,200m altitude in Jaj, Mount Lebanon. Our facilities feature clean private toilet modules, fresh mountain spring water taps, campfire areas, and scenic mountain views."}
                             </p>
+
+                            {acc.amenities && (
+                                <div className="pt-6 border-t border-gray-100 space-y-3">
+                                    <span className="block text-[8px] font-bold text-gray-400 uppercase tracking-widest">
+                                        Included Additional Amenities
+                                    </span>
+                                    <div className="flex flex-wrap gap-2">
+                                        {acc.amenities.split(",").map((item: string, idx: number) => {
+                                            const clean = item.trim();
+                                            if (!clean) return null;
+                                            return (
+                                                <span
+                                                    key={idx}
+                                                    className="px-3 py-1 bg-skylight-green/5 text-skylight-green text-[10px] font-bold rounded-lg border border-skylight-green/10"
+                                                >
+                                                    {clean}
+                                                </span>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Specs Grid */}
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6 border-t border-gray-100">
