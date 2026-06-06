@@ -40,7 +40,19 @@ export default async function AdminDashboardPage() {
       };
 
   // 3. Fetch comprehensive records in parallel from DB
-  const [accommodations, bookings, restaurantBookings, events, attractions, reviews, restaurantZones] = await Promise.all([
+  const [
+    accommodations,
+    bookings,
+    restaurantBookings,
+    events,
+    attractions,
+    reviews,
+    restaurantZones,
+    stockItems,
+    wasteLogs,
+    assets,
+    stockMovements
+  ] = await Promise.all([
     db.accommodation.findMany({
       include: { addons: true, images: true },
       orderBy: { name: "asc" },
@@ -64,6 +76,28 @@ export default async function AdminDashboardPage() {
     db.restaurantZone.findMany({
       orderBy: { name: "asc" },
     }),
+    db.stockItem.findMany({
+      include: { wasteLogs: true },
+      orderBy: { name: "asc" },
+    }),
+    db.wasteLog.findMany({
+      include: {
+        stockItem: { select: { name: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 15,
+    }),
+    db.asset.findMany({
+      include: { allocations: true },
+      orderBy: { name: "asc" },
+    }),
+    db.stockMovement.findMany({
+      include: {
+        stockItem: { select: { name: true, unit: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+    }),
   ]);
 
   // 4. Render client control console with props
@@ -85,6 +119,10 @@ export default async function AdminDashboardPage() {
         attractions={attractions}
         reviews={reviews}
         restaurantZones={restaurantZones}
+        stockItems={stockItems as any}
+        wasteLogs={wasteLogs as any}
+        assets={assets as any}
+        stockMovements={stockMovements as any}
       />
     </div>
   );

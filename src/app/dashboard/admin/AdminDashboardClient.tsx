@@ -55,7 +55,9 @@ import {
   CheckCircle,
   XCircle,
   Layers,
+  Package,
 } from "lucide-react";
+import AdminStockDashboard from "@/components/AdminStockDashboard";
 
 interface AdminDashboardClientProps {
   stats: {
@@ -75,6 +77,10 @@ interface AdminDashboardClientProps {
   attractions: any[];
   reviews: any[];
   restaurantZones: any[];
+  stockItems: any[];
+  wasteLogs: any[];
+  assets: any[];
+  stockMovements: any[];
 }
 
 export default function AdminDashboardClient({
@@ -86,6 +92,10 @@ export default function AdminDashboardClient({
   attractions,
   reviews,
   restaurantZones,
+  stockItems,
+  wasteLogs,
+  assets,
+  stockMovements,
 }: AdminDashboardClientProps) {
   const router = useRouter();
 
@@ -121,7 +131,40 @@ export default function AdminDashboardClient({
     return "";
   };
 
-  const [activeTab, setActiveTab] = useState<"calendar" | "stays" | "restaurant" | "accommodations" | "events" | "hikes" | "reviews" | "zones">("calendar");
+  const getCalculatedStayPrice = (accId: string, startStr: string, endStr: string, guests: number) => {
+    const acc = accommodations.find((a) => a.id === accId);
+    if (!acc || !startStr || !endStr) return 0;
+
+    const start = new Date(startStr);
+    const end = new Date(endStr);
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) return 0;
+    const timeDiff = end.getTime() - start.getTime();
+    const daysCount = Math.ceil(timeDiff / (1000 * 3600 * 24));
+    const duration = daysCount >= 0 ? daysCount + 1 : 1;
+
+    const useNightlyRate =
+      acc.nightThresholdEnabled &&
+      duration >= (acc.nightThreshold ?? 5);
+    const billableUnits = useNightlyRate ? duration - 1 : duration;
+
+    if (acc.pricingType === "PER_PERSON_PER_DAY" || acc.pricingType === "PER_PERSON_PER_NIGHT") {
+      return acc.basePrice * guests * billableUnits;
+    } else {
+      return acc.basePrice * billableUnits;
+    }
+  };
+
+  const [activeTab, setActiveTab] = useState<"calendar" | "stays" | "restaurant" | "accommodations" | "events" | "hikes" | "reviews" | "zones" | "stock">("calendar");
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const searchParams = new URLSearchParams(window.location.search);
+      const tabParam = searchParams.get("tab");
+      if (tabParam === "stock" || tabParam === "calendar" || tabParam === "stays" || tabParam === "restaurant" || tabParam === "accommodations" || tabParam === "events" || tabParam === "hikes" || tabParam === "reviews" || tabParam === "zones") {
+        setActiveTab(tabParam as any);
+      }
+    }
+  }, []);
 
   // Filters States
   const [staySearch, setStaySearch] = useState("");
@@ -257,7 +300,7 @@ export default function AdminDashboardClient({
 
   // Form Fields State
   const [accForm, setAccForm] = useState({ name: "", type: "WOOD_TENT", pricingType: "PER_UNIT_PER_NIGHT", basePrice: 0, minCapacity: 1, maxCapacity: 4, description: "", amenities: "", nightThresholdEnabled: false, nightThreshold: 5 });
-  const [stayForm, setStayForm] = useState({ accommodationId: "", customerName: "", customerEmail: "", customerPhone: "", groupName: "", startDate: "", endDate: "", peopleCount: 2, status: "PENDING", notes: "" });
+  const [stayForm, setStayForm] = useState({ accommodationId: "", customerName: "", customerEmail: "", customerPhone: "", groupName: "", startDate: "", endDate: "", peopleCount: 2, status: "PENDING", notes: "", totalPrice: 0, amountPaid: 0 });
   const [restForm, setRestForm] = useState({ customerName: "", customerEmail: "", customerPhone: "", bookingDate: "", timeSlot: "12:00 PM", zone: "Skylight Restaurant", peopleCount: 2, status: "PENDING", notes: "" });
   const [eventForm, setEventForm] = useState({ title: "", description: "", date: "", price: 0, requiresTicket: false, capacity: 100 });
   const [hikeForm, setHikeForm] = useState({ name: "", category: "Nature Reserve", description: "", imageUrl: "", location: "", distance: "", details: "", externalUrl: "" });
@@ -508,6 +551,8 @@ export default function AdminDashboardClient({
       peopleCount: item.peopleCount,
       status: item.status,
       notes: item.notes || "",
+      totalPrice: item.totalPrice,
+      amountPaid: item.amountPaid || 0,
     });
     setModalType("stay");
   };
@@ -706,7 +751,11 @@ export default function AdminDashboardClient({
         </div>
 
         {/* Alert Card (Low Stock) */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 hover:border-red-500/30 transition duration-300 shadow-sm shadow-slate-100">
+        <div
+          onClick={() => setActiveTab("stock")}
+          className="bg-white border border-slate-200 rounded-2xl p-6 hover:border-red-500/30 transition duration-300 shadow-sm shadow-slate-100 cursor-pointer"
+          title="Click to manage Stock & Provisions Ledger"
+        >
           <div className="flex justify-between items-start text-amber-600 mb-4">
             <span className="text-xs font-extrabold uppercase tracking-wider text-slate-400">Stock Alerts</span>
             <AlertCircle size={18} />
@@ -728,6 +777,7 @@ export default function AdminDashboardClient({
           { id: "hikes", label: "Local Attractions", icon: MapPin },
           { id: "reviews", label: "Customer Reviews", icon: Star },
           { id: "zones", label: "Dining Zones", icon: Layers },
+          { id: "stock", label: "Stock & Assets", icon: Package },
         ].map((tab) => {
           const IconComp = tab.icon;
           return (
@@ -1174,17 +1224,25 @@ export default function AdminDashboardClient({
               <button
                 onClick={() => {
                   setEditingItem(null);
+                  const defaultAccId = accommodations[0]?.id || "";
+                  const defaultStart = new Date().toISOString().split("T")[0];
+                  const defaultEnd = new Date(Date.now() + 86400000).toISOString().split("T")[0];
+                  const defaultGuests = 2;
+                  const defaultPrice = getCalculatedStayPrice(defaultAccId, defaultStart, defaultEnd, defaultGuests);
+
                   setStayForm({
-                    accommodationId: accommodations[0]?.id || "",
+                    accommodationId: defaultAccId,
                     customerName: "",
                     customerEmail: "",
                     customerPhone: "",
                     groupName: "",
-                    startDate: new Date().toISOString().split("T")[0],
-                    endDate: new Date(Date.now() + 86400000).toISOString().split("T")[0],
-                    peopleCount: 2,
+                    startDate: defaultStart,
+                    endDate: defaultEnd,
+                    peopleCount: defaultGuests,
                     status: "PENDING",
                     notes: "",
+                    totalPrice: defaultPrice,
+                    amountPaid: 0,
                   });
                   setModalType("stay");
                 }}
@@ -2067,6 +2125,12 @@ export default function AdminDashboardClient({
           </div>
         )}
 
+        {activeTab === "stock" && (
+          <div className="space-y-6 bg-slate-50/50 p-6 rounded-3xl border border-slate-100">
+            <AdminStockDashboard stockItems={stockItems} wasteLogs={wasteLogs} initialAssets={assets} stockMovements={stockMovements} />
+          </div>
+        )}
+
       </section>
 
       {/* ==========================================
@@ -2413,7 +2477,11 @@ export default function AdminDashboardClient({
                   <label className="block font-bold text-slate-500 mb-1.5">Select Option</label>
                   <select
                     value={stayForm.accommodationId}
-                    onChange={(e) => setStayForm({ ...stayForm, accommodationId: e.target.value })}
+                    onChange={(e) => {
+                      const newAccId = e.target.value;
+                      const newPrice = getCalculatedStayPrice(newAccId, stayForm.startDate, stayForm.endDate, stayForm.peopleCount);
+                      setStayForm({ ...stayForm, accommodationId: newAccId, totalPrice: newPrice });
+                    }}
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none"
                   >
                     {accommodations.map((a) => (
@@ -2429,8 +2497,7 @@ export default function AdminDashboardClient({
                         <label className="block font-bold text-slate-500 mb-1.5">Group Name</label>
                         <input
                           type="text"
-                          required
-                          placeholder="e.g. GSS Jounieh"
+                          placeholder="e.g. GSS Jounieh (Optional)"
                           value={stayForm.groupName}
                           onChange={(e) => setStayForm({ ...stayForm, groupName: e.target.value })}
                           className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none"
@@ -2466,7 +2533,7 @@ export default function AdminDashboardClient({
                   <label className="block font-bold text-slate-500 mb-1.5">Customer Email</label>
                   <input
                     type="email"
-                    required
+                    placeholder="customer@email.com (Optional)"
                     value={stayForm.customerEmail}
                     onChange={(e) => setStayForm({ ...stayForm, customerEmail: e.target.value })}
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none"
@@ -2479,7 +2546,11 @@ export default function AdminDashboardClient({
                       type="date"
                       required
                       value={stayForm.startDate}
-                      onChange={(e) => setStayForm({ ...stayForm, startDate: e.target.value })}
+                      onChange={(e) => {
+                        const newStart = e.target.value;
+                        const newPrice = getCalculatedStayPrice(stayForm.accommodationId, newStart, stayForm.endDate, stayForm.peopleCount);
+                        setStayForm({ ...stayForm, startDate: newStart, totalPrice: newPrice });
+                      }}
                       className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none"
                     />
                   </div>
@@ -2489,7 +2560,11 @@ export default function AdminDashboardClient({
                       type="date"
                       required
                       value={stayForm.endDate}
-                      onChange={(e) => setStayForm({ ...stayForm, endDate: e.target.value })}
+                      onChange={(e) => {
+                        const newEnd = e.target.value;
+                        const newPrice = getCalculatedStayPrice(stayForm.accommodationId, stayForm.startDate, newEnd, stayForm.peopleCount);
+                        setStayForm({ ...stayForm, endDate: newEnd, totalPrice: newPrice });
+                      }}
                       className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none"
                     />
                   </div>
@@ -2502,7 +2577,11 @@ export default function AdminDashboardClient({
                       required
                       min={1}
                       value={stayForm.peopleCount}
-                      onChange={(e) => setStayForm({ ...stayForm, peopleCount: Number(e.target.value) })}
+                      onChange={(e) => {
+                        const newGuests = Number(e.target.value);
+                        const newPrice = getCalculatedStayPrice(stayForm.accommodationId, stayForm.startDate, stayForm.endDate, newGuests);
+                        setStayForm({ ...stayForm, peopleCount: newGuests, totalPrice: newPrice });
+                      }}
                       className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none"
                     />
                   </div>
@@ -2519,6 +2598,38 @@ export default function AdminDashboardClient({
                       <option value="CONFIRMED">CONFIRMED</option>
                       <option value="CANCELLED">CANCELLED</option>
                     </select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block font-bold text-slate-500 mb-1.5">Total Cost ($)</label>
+                    <input
+                      type="number"
+                      required
+                      min={0}
+                      step="any"
+                      value={stayForm.totalPrice}
+                      onChange={(e) => setStayForm({ ...stayForm, totalPrice: Number(e.target.value) })}
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none font-semibold text-indigo-600"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-bold text-slate-500 mb-1.5">Amount Paid ($)</label>
+                    <input
+                      type="number"
+                      required
+                      min={0}
+                      step="any"
+                      value={stayForm.amountPaid}
+                      onChange={(e) => setStayForm({ ...stayForm, amountPaid: Number(e.target.value) })}
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-bold text-slate-500 mb-1.5">Amount Left ($)</label>
+                    <div className="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-xl text-slate-800 font-bold flex items-center justify-between">
+                      <span>${Math.max(0, stayForm.totalPrice - stayForm.amountPaid).toFixed(2)}</span>
+                    </div>
                   </div>
                 </div>
                 <div>
@@ -2579,7 +2690,7 @@ export default function AdminDashboardClient({
                   <label className="block font-bold text-slate-500 mb-1.5">Customer Email</label>
                   <input
                     type="email"
-                    required
+                    placeholder="customer@email.com (Optional)"
                     value={restForm.customerEmail}
                     onChange={(e) => setRestForm({ ...restForm, customerEmail: e.target.value })}
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none"

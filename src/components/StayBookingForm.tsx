@@ -70,7 +70,7 @@ export default function StayBookingForm({
         const start = new Date(startDate);
         const end = new Date(endDate);
         const durationDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 3600 * 24));
-        const duration = durationDays > 0 ? durationDays : 1;
+        const duration = durationDays >= 0 ? durationDays + 1 : 1;
 
         // Night threshold: if enabled and duration >= threshold, charge for (duration-1) nights
         const useNightlyRate =
@@ -135,9 +135,9 @@ export default function StayBookingForm({
         const res = await createStayBooking({
             accommodationId: accommodation.id,
             customerName: (e.target as any).customerName.value,
-            customerEmail: (e.target as any).customerEmail.value,
+            customerEmail: (e.target as any).customerEmail.value || undefined,
             customerPhone: (e.target as any).customerPhone.value,
-            groupName: accommodation.type === "SCOUT_ZONE" ? (e.target as any).groupName?.value : undefined,
+            groupName: (e.target as any).groupName?.value || undefined,
             startDate,
             endDate,
             peopleCount,
@@ -271,10 +271,9 @@ export default function StayBookingForm({
                         <div className="relative">
                             <Users className="w-4 h-4 text-skylight-gold absolute left-3 top-3.5" />
                             <input
-                                required
                                 type="text"
                                 name="groupName"
-                                placeholder="Scout Group Name (e.g. GSS Jounieh)"
+                                placeholder="Scout Group Name (e.g. GSS Jounieh) (Optional)"
                                 className="w-full p-3 pl-9 rounded-xl bg-[#fafbfa] border border-gray-200 text-xs font-semibold text-skylight-green focus:outline-none focus:border-skylight-green"
                             />
                         </div>
@@ -292,10 +291,9 @@ export default function StayBookingForm({
                     <div className="relative">
                         <Mail className="w-4 h-4 text-skylight-gold absolute left-3 top-3.5" />
                         <input
-                            required
                             type="email"
                             name="customerEmail"
-                            placeholder="elie@haddad.com"
+                            placeholder="elie@haddad.com (Optional)"
                             className="w-full p-3 pl-9 rounded-xl bg-[#fafbfa] border border-gray-200 text-xs font-semibold text-skylight-green focus:outline-none focus:border-skylight-green"
                         />
                     </div>

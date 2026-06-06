@@ -7,7 +7,7 @@ import { revalidatePath } from "next/cache";
 export async function createStayBooking(data: {
   accommodationId: string;
   customerName: string;
-  customerEmail: string;
+  customerEmail?: string;
   customerPhone: string;
   groupName?: string;
   startDate: string;
@@ -42,7 +42,7 @@ export async function createStayBooking(data: {
     const end = new Date(data.endDate);
     const timeDiff = end.getTime() - start.getTime();
     const daysCount = Math.ceil(timeDiff / (1000 * 3600 * 24));
-    const duration = daysCount > 0 ? daysCount : 1;
+    const duration = daysCount >= 0 ? daysCount + 1 : 1;
 
     // Night-threshold pricing: if enabled and duration >= threshold, charge for (duration - 1) nights instead of duration days
     const useNightlyRate =
@@ -83,9 +83,9 @@ export async function createStayBooking(data: {
       data: {
         accommodationId: data.accommodationId,
         customerName: data.customerName,
-        customerEmail: data.customerEmail,
+        customerEmail: data.customerEmail || null,
         customerPhone: data.customerPhone,
-        groupName: data.groupName,
+        groupName: data.groupName || null,
         startDate: start,
         endDate: end,
         peopleCount: data.peopleCount,
@@ -109,7 +109,7 @@ export async function createStayBooking(data: {
 // 2. Restaurant Table Booking Action
 export async function createRestaurantBooking(data: {
   customerName: string;
-  customerEmail: string;
+  customerEmail?: string;
   customerPhone: string;
   bookingDate: string;
   timeSlot: string;
@@ -125,7 +125,7 @@ export async function createRestaurantBooking(data: {
     const booking = await db.restaurantBooking.create({
       data: {
         customerName: data.customerName,
-        customerEmail: data.customerEmail,
+        customerEmail: data.customerEmail || null,
         customerPhone: data.customerPhone,
         bookingDate: new Date(data.bookingDate),
         timeSlot: data.timeSlot,
@@ -198,6 +198,14 @@ export async function submitQROrder(data: {
             quantity: {
               decrement: item.quantity,
             },
+          },
+        });
+        await db.stockMovement.create({
+          data: {
+            stockItemId: menuItem.stockItemId,
+            quantity: -Number(item.quantity),
+            type: "ORDER_DEDUCTION",
+            notes: `Auto-deducted for Order #${order.id} (Table ID: ${order.tableId})`,
           },
         });
       }
@@ -410,7 +418,16 @@ export async function logStockWaste(stockItemId: string, quantity: number, reaso
       },
     });
 
-    revalidatePath("/dashboard/admin/stock");
+    await db.stockMovement.create({
+      data: {
+        stockItemId,
+        quantity: -Number(quantity),
+        type: "WASTE",
+        notes: `Waste write-off (legacy action): ${reason}`,
+      },
+    });
+
+    revalidatePath("/dashboard/admin");
     return { success: true };
   } catch (error: any) {
     console.error("Failed to log stock waste:", error);

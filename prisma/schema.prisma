@@ -47,13 +47,14 @@ model Booking {
   accommodationId String
   accommodation   Accommodation  @relation(fields: [accommodationId], references: [id])
   customerName    String
-  customerEmail   String
+  customerEmail   String?
   customerPhone   String
   groupName       String?
   startDate       DateTime
   endDate         DateTime
   peopleCount     Int
   totalPrice      Float
+  amountPaid      Float          @default(0)
   status          String         // e.g. "PENDING", "DEPOSIT_PAID", "FULL_PAID", "CONFIRMED", "CANCELLED", "DONE"
   notes           String?
   createdAt       DateTime       @default(now())
@@ -114,7 +115,7 @@ model Staff {
 model RestaurantBooking {
   id            String   @id @default(uuid())
   customerName  String
-  customerEmail String
+  customerEmail String?
   customerPhone String
   bookingDate   DateTime
   timeSlot      String   // e.g. "12:00 - 14:00"
@@ -141,7 +142,7 @@ model EventReservation {
   eventId       String
   event         Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
   customerName  String
-  customerEmail String
+  customerEmail String?
   ticketCount   Int
   paid          Boolean  @default(false)
 }
@@ -202,15 +203,26 @@ model Invoice {
 }
 
 model StockItem {
-  id             String     @id @default(uuid())
+  id             String          @id @default(uuid())
   name           String
-  category       String     // "FOOD", "ALCOHOL", "BEVERAGE", "SHISHA_ITEM"
+  category       String          // "FOOD", "ALCOHOL", "BEVERAGE", "SHISHA_ITEM"
   quantity       Int
-  unit           String     // "units", "grams", "liters"
-  minThreshold   Int        @default(15)
+  unit           String          // "units", "grams", "liters"
+  minThreshold   Int             @default(15)
   expirationDate DateTime?
   menuItems      MenuItem[]
   wasteLogs      WasteLog[]
+  movements      StockMovement[]
+}
+
+model StockMovement {
+  id          String    @id @default(uuid())
+  stockItemId String
+  stockItem   StockItem @relation(fields: [stockItemId], references: [id], onDelete: Cascade)
+  quantity    Int       // positive for addition/restock, negative for deduction/waste
+  type        String    // "RESTOCK", "WASTE", "ORDER_DEDUCTION", "ADJUSTMENT"
+  notes       String?   // optional details e.g., "Received shipment" or "Deducted for Order #123"
+  createdAt   DateTime  @default(now())
 }
 
 model WasteLog {

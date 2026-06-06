@@ -243,7 +243,7 @@ export async function deleteAccommodation(id: string) {
 export async function createBookingManual(data: {
   accommodationId: string;
   customerName: string;
-  customerEmail: string;
+  customerEmail?: string;
   customerPhone: string;
   groupName?: string;
   startDate: string;
@@ -251,6 +251,8 @@ export async function createBookingManual(data: {
   peopleCount: number;
   status: string;
   notes?: string;
+  totalPrice?: number;
+  amountPaid?: number;
 }) {
   try {
     const acc = await db.accommodation.findUnique({
@@ -262,7 +264,7 @@ export async function createBookingManual(data: {
     const end = new Date(data.endDate);
     const timeDiff = end.getTime() - start.getTime();
     const daysCount = Math.ceil(timeDiff / (1000 * 3600 * 24));
-    const duration = daysCount > 0 ? daysCount : 1;
+    const duration = daysCount >= 0 ? daysCount + 1 : 1;
 
     // Apply night-threshold pricing: if enabled and duration >= threshold, charge for (duration-1) nights
     const useNightlyRate =
@@ -270,24 +272,27 @@ export async function createBookingManual(data: {
       duration >= ((acc as any).nightThreshold ?? 5);
     const billableUnits = useNightlyRate ? duration - 1 : duration;
 
-    let totalPrice = 0;
-    if (acc.pricingType === "PER_PERSON_PER_DAY" || acc.pricingType === "PER_PERSON_PER_NIGHT") {
-      totalPrice = acc.basePrice * Number(data.peopleCount) * billableUnits;
-    } else {
-      totalPrice = acc.basePrice * billableUnits;
+    let totalPrice = data.totalPrice !== undefined ? Number(data.totalPrice) : undefined;
+    if (totalPrice === undefined) {
+      if (acc.pricingType === "PER_PERSON_PER_DAY" || acc.pricingType === "PER_PERSON_PER_NIGHT") {
+        totalPrice = acc.basePrice * Number(data.peopleCount) * billableUnits;
+      } else {
+        totalPrice = acc.basePrice * billableUnits;
+      }
     }
 
     const booking = await db.booking.create({
       data: {
         accommodationId: data.accommodationId,
         customerName: data.customerName,
-        customerEmail: data.customerEmail,
+        customerEmail: data.customerEmail || null,
         customerPhone: data.customerPhone,
-        groupName: data.groupName,
+        groupName: data.groupName || null,
         startDate: start,
         endDate: end,
         peopleCount: Number(data.peopleCount),
         totalPrice,
+        amountPaid: data.amountPaid !== undefined ? Number(data.amountPaid) : 0,
         status: data.status,
         notes: data.notes,
       }
@@ -307,7 +312,7 @@ export async function updateBookingDetails(
   id: string,
   data: {
     customerName: string;
-    customerEmail: string;
+    customerEmail?: string;
     customerPhone: string;
     groupName?: string;
     startDate: string;
@@ -315,6 +320,8 @@ export async function updateBookingDetails(
     peopleCount: number;
     status: string;
     notes?: string;
+    totalPrice?: number;
+    amountPaid?: number;
   }
 ) {
   try {
@@ -328,10 +335,10 @@ export async function updateBookingDetails(
     const end = new Date(data.endDate);
     const timeDiff = end.getTime() - start.getTime();
     const daysCount = Math.ceil(timeDiff / (1000 * 3600 * 24));
-    const duration = daysCount > 0 ? daysCount : 1;
+    const duration = daysCount >= 0 ? daysCount + 1 : 1;
 
-    let totalPrice = booking.totalPrice;
-    if (booking.accommodation) {
+    let totalPrice = data.totalPrice !== undefined ? Number(data.totalPrice) : undefined;
+    if (totalPrice === undefined && booking.accommodation) {
       const useNightlyRate =
         (booking.accommodation as any).nightThresholdEnabled &&
         duration >= ((booking.accommodation as any).nightThreshold ?? 5);
@@ -342,19 +349,22 @@ export async function updateBookingDetails(
       } else {
         totalPrice = booking.accommodation.basePrice * billableUnits;
       }
+    } else if (totalPrice === undefined) {
+      totalPrice = booking.totalPrice;
     }
 
     await db.booking.update({
       where: { id },
       data: {
         customerName: data.customerName,
-        customerEmail: data.customerEmail,
+        customerEmail: data.customerEmail || null,
         customerPhone: data.customerPhone,
-        groupName: data.groupName,
+        groupName: data.groupName || null,
         startDate: start,
         endDate: end,
         peopleCount: Number(data.peopleCount),
         totalPrice,
+        amountPaid: data.amountPaid !== undefined ? Number(data.amountPaid) : booking.amountPaid,
         status: data.status,
         notes: data.notes,
       }
@@ -388,7 +398,7 @@ export async function deleteBooking(id: string) {
 
 export async function createRestaurantBookingManual(data: {
   customerName: string;
-  customerEmail: string;
+  customerEmail?: string;
   customerPhone: string;
   bookingDate: string;
   timeSlot: string;
@@ -401,7 +411,7 @@ export async function createRestaurantBookingManual(data: {
     const booking = await db.restaurantBooking.create({
       data: {
         customerName: data.customerName,
-        customerEmail: data.customerEmail,
+        customerEmail: data.customerEmail || null,
         customerPhone: data.customerPhone,
         bookingDate: new Date(data.bookingDate),
         timeSlot: data.timeSlot,
@@ -425,7 +435,7 @@ export async function updateRestaurantBookingDetails(
   id: string,
   data: {
     customerName: string;
-    customerEmail: string;
+    customerEmail?: string;
     customerPhone: string;
     bookingDate: string;
     timeSlot: string;
@@ -440,7 +450,7 @@ export async function updateRestaurantBookingDetails(
       where: { id },
       data: {
         customerName: data.customerName,
-        customerEmail: data.customerEmail,
+        customerEmail: data.customerEmail || null,
         customerPhone: data.customerPhone,
         bookingDate: new Date(data.bookingDate),
         timeSlot: data.timeSlot,

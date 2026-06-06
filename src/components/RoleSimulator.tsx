@@ -108,7 +108,7 @@ export default function RoleSimulator() {
         </Link>
 
         <Link
-          href="/dashboard/admin/stock"
+          href="/dashboard/admin?tab=stock"
           className={`p-2 col-span-2 rounded-lg font-semibold flex items-center justify-center gap-1.5 transition-all ${
             activeRole === "ADMIN"
               ? "bg-skylight-gold text-skylight-dark shadow-md"

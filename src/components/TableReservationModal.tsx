@@ -119,7 +119,7 @@ export default function TableReservationModal({
 
         const res = await createRestaurantBooking({
             customerName: (e.target as any).customerName.value,
-            customerEmail: (e.target as any).customerEmail.value,
+            customerEmail: (e.target as any).customerEmail.value || undefined,
             customerPhone: (e.target as any).customerPhone.value,
             bookingDate,
             timeSlot,
@@ -341,10 +341,9 @@ export default function TableReservationModal({
                                                 <div className="relative">
                                                     <Mail className="w-3.5 h-3.5 text-skylight-gold absolute left-3 top-3" />
                                                     <input
-                                                        required
                                                         type="email"
                                                         name="customerEmail"
-                                                        placeholder="Email"
+                                                        placeholder="Email (Optional)"
                                                         className="w-full py-2.5 pl-8 pr-2 rounded-xl bg-gray-50 border border-gray-200 text-xs font-semibold text-skylight-green focus:outline-none focus:border-skylight-green"
                                                     />
                                                 </div>
