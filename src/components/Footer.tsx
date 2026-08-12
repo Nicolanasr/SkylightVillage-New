@@ -22,9 +22,24 @@ export default function Footer() {
                     <p className="text-xs text-gray-400 leading-relaxed font-light">
                         Escape to 1,200m altitude in Jaj, Mount Lebanon. Gather around the fire, sleep beneath the starry sky, and disconnect in nature.
                     </p>
-                    <div className="flex items-center gap-1.5 text-xs text-skylight-gold font-semibold pt-1">
-                        <Star className="w-4 h-4 fill-skylight-gold text-skylight-gold" />
-                        <span>Stargazing Sanctuary &bull; 4.9 ★ on Google</span>
+                    <div className="flex items-center gap-3 pt-1">
+                        <a
+                            href="https://instagram.com/skylightvillagelb"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-amber-400 hover:text-white transition-colors font-bold"
+                        >
+                            Instagram ↗
+                        </a>
+                        <span className="text-gray-600">&bull;</span>
+                        <a
+                            href="https://www.facebook.com/Skylightvillage/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-amber-400 hover:text-white transition-colors font-bold"
+                        >
+                            Facebook ↗
+                        </a>
                     </div>
                 </div>
 
@@ -40,9 +55,9 @@ export default function Footer() {
                             </Link>
                         </li>
                         <li>
-                            <a 
-                                href="https://menu.skylightvillagelb.com/" 
-                                target="_blank" 
+                            <a
+                                href="https://menu.skylightvillagelb.com/"
+                                target="_blank"
                                 rel="noopener noreferrer"
                                 className="hover:text-white transition-colors text-amber-400"
                             >
@@ -79,11 +94,11 @@ export default function Footer() {
                         </li>
                         <li className="flex items-center gap-2.5">
                             <Phone className="w-4 h-4 text-skylight-gold flex-shrink-0" />
-                            <span>+961 76 987654</span>
+                            <a href="tel:+96176987654" className="hover:text-white transition-colors">+961 76 987654</a>
                         </li>
                         <li className="flex items-center gap-2.5">
                             <Mail className="w-4 h-4 text-skylight-gold flex-shrink-0" />
-                            <span>info@skylightvillagelb.com</span>
+                            <a href="mailto:info@skylightvillagelb.com" className="hover:text-white transition-colors">Contact Concierge Desk</a>
                         </li>
                     </ul>
                 </div>
