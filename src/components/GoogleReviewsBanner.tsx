@@ -1,11 +1,12 @@
 "use client";
 
 import React from "react";
-import { Star, MessageSquareHeart, ExternalLink, ShieldCheck } from "lucide-react";
+import { Star, MessageSquareHeart, ExternalLink } from "lucide-react";
+import WhatsAppIcon from "./WhatsAppIcon";
 
 export default function GoogleReviewsBanner() {
-  const googleSearchUrl =
-    "https://www.google.com/maps/search/?api=1&query=Skylight+Village+Jaj+Lebanon";
+  const googleMapsUrl = "https://maps.app.goo.gl/v3TU1HqX9YGE1hSSA";
+  const whatsappUrl = "https://wa.me/96170663399";
 
   return (
     <section className="py-12 px-4 md:px-8 bg-gradient-to-r from-[#071308] via-emerald-950 to-[#071308] text-white relative overflow-hidden border-y border-amber-400/20">
@@ -16,7 +17,7 @@ export default function GoogleReviewsBanner() {
         <div className="space-y-3 max-w-xl">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-400/20 border border-amber-400/30 text-amber-300 text-[10px] font-black uppercase tracking-widest">
             <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-            <span>4.9 ★★★★★ Rating on Google Reviews</span>
+            <span>4.9 ★★★★★ Rating on Google Maps</span>
           </div>
 
           <h3 className="text-2xl sm:text-3xl font-display font-extrabold text-white leading-tight">
@@ -24,14 +25,14 @@ export default function GoogleReviewsBanner() {
           </h3>
 
           <p className="text-slate-300 font-light text-xs sm:text-sm leading-relaxed">
-            Your reviews help fellow mountain campers, families, and scout troops discover our sanctuary in Jaj. Share your thoughts, photos, and ratings on Google!
+            Your reviews help fellow mountain campers, families, and scout troops discover our sanctuary in Jaj. Share your experience and photos on Google Maps!
           </p>
         </div>
 
-        {/* Right CTA Button */}
+        {/* Right CTA Buttons */}
         <div className="flex flex-col sm:flex-row items-center gap-3 flex-shrink-0">
           <a
-            href={googleSearchUrl}
+            href={googleMapsUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="px-6 py-3.5 bg-amber-400 hover:bg-amber-300 text-[#071308] font-display font-extrabold text-xs tracking-widest uppercase rounded-xl shadow-lg shadow-amber-400/20 hover:-translate-y-0.5 transition-all inline-flex items-center gap-2 whitespace-nowrap"
@@ -39,6 +40,16 @@ export default function GoogleReviewsBanner() {
             <MessageSquareHeart size={16} className="text-[#071308]" />
             <span>Leave a Google Review</span>
             <ExternalLink size={14} className="opacity-70" />
+          </a>
+
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-6 py-3.5 bg-[#25D366] hover:bg-[#20ba5a] text-white font-display font-extrabold text-xs tracking-widest uppercase rounded-xl shadow-lg hover:-translate-y-0.5 transition-all inline-flex items-center gap-2 whitespace-nowrap"
+          >
+            <WhatsAppIcon className="w-4 h-4 text-white" />
+            <span>WhatsApp Concierge</span>
           </a>
         </div>
       </div>

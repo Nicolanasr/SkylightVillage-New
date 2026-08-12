@@ -229,10 +229,10 @@ export default async function HomePage() {
 
             <div className="pt-4">
               <Link
-                href="/about"
+                href="/stay"
                 className="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-widest text-[#071308] hover:text-emerald-700 transition-colors group"
               >
-                <span>Read Our Venue Story</span>
+                <span>Explore Camping &amp; Cabins</span>
                 <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>

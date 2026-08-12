@@ -44,9 +44,6 @@ export default function Navbar() {
                     <Link href="/blog" className="hover:text-skylight-gold transition-colors flex items-center gap-1">
                         <BookOpen className="w-3.5 h-3.5" /> Blog
                     </Link>
-                    <Link href="/about" className="hover:text-skylight-gold transition-colors flex items-center gap-1">
-                        <Info className="w-3.5 h-3.5" /> About
-                    </Link>
                     <Link href="/contact" className="hover:text-skylight-gold transition-colors flex items-center gap-1">
                         <Phone className="w-3.5 h-3.5" /> Contact
                     </Link>
@@ -91,9 +88,6 @@ export default function Navbar() {
                         </Link>
                         <Link onClick={() => setIsOpen(false)} href="/blog" className="py-2 hover:text-skylight-gold transition-colors">
                             Village Blog
-                        </Link>
-                        <Link onClick={() => setIsOpen(false)} href="/about" className="py-2 hover:text-skylight-gold transition-colors">
-                            Our Story
                         </Link>
                         <Link onClick={() => setIsOpen(false)} href="/contact" className="py-2 hover:text-skylight-gold transition-colors">
                             Get in Touch

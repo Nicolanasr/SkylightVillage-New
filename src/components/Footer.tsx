@@ -2,10 +2,11 @@ import React from "react";
 import Link from "next/link";
 import { Tent, Phone, Mail, MapPin, Star, Heart, MessageSquareHeart, ExternalLink } from "lucide-react";
 import Image from "next/image";
+import WhatsAppIcon from "./WhatsAppIcon";
 
 export default function Footer() {
-    const googleSearchUrl =
-        "https://www.google.com/maps/search/?api=1&query=Skylight+Village+Jaj+Lebanon";
+    const googleMapsUrl = "https://maps.app.goo.gl/v3TU1HqX9YGE1hSSA";
+    const whatsappUrl = "https://wa.me/96170663399";
 
     return (
         <footer className="w-full bg-[#0d1c0e] text-[#fafbfa] pt-16 pb-8 border-t border-skylight-green/30 mt-auto">
@@ -90,11 +91,17 @@ export default function Footer() {
                     <ul className="space-y-3.5 text-xs text-gray-400">
                         <li className="flex items-start gap-2.5">
                             <MapPin className="w-4 h-4 text-skylight-gold flex-shrink-0 pt-0.5" />
-                            <span className="leading-relaxed">Jaj, Mount Lebanon, Lebanon (Altitude 1,200m)</span>
+                            <a href={googleMapsUrl} target="_blank" rel="noopener noreferrer" className="leading-relaxed hover:text-amber-300 transition-colors">
+                                Jaj, Mount Lebanon, Lebanon (Altitude 1,200m) ↗
+                            </a>
                         </li>
                         <li className="flex items-center gap-2.5">
                             <Phone className="w-4 h-4 text-skylight-gold flex-shrink-0" />
-                            <a href="tel:+96176987654" className="hover:text-white transition-colors">+961 76 987654</a>
+                            <a href="tel:+96170663399" className="hover:text-white transition-colors">+961 70 66 33 99</a>
+                        </li>
+                        <li className="flex items-center gap-2.5">
+                            <WhatsAppIcon className="w-4 h-4 text-skylight-gold flex-shrink-0" />
+                            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">WhatsApp: +961 70 66 33 99</a>
                         </li>
                         <li className="flex items-center gap-2.5">
                             <Mail className="w-4 h-4 text-skylight-gold flex-shrink-0" />
@@ -111,16 +118,28 @@ export default function Footer() {
                     <p className="text-xs text-gray-400 leading-relaxed font-light mb-4">
                         Enjoyed your stay or day picnic at Skylight Village? Leave us a review on Google Maps to help others discover our grounds!
                     </p>
-                    <a
-                        href={googleSearchUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-400 hover:bg-amber-300 text-[#071308] font-display font-extrabold text-[10px] uppercase tracking-widest rounded-xl transition-all shadow-md mb-3"
-                    >
-                        <MessageSquareHeart size={14} />
-                        <span>Leave a Google Review</span>
-                        <ExternalLink size={12} className="opacity-70" />
-                    </a>
+                    <div className="flex flex-col gap-2">
+                        <a
+                            href={googleMapsUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-400 hover:bg-amber-300 text-[#071308] font-display font-extrabold text-[10px] uppercase tracking-widest rounded-xl transition-all shadow-md"
+                        >
+                            <MessageSquareHeart size={14} />
+                            <span>Leave a Google Review</span>
+                            <ExternalLink size={12} className="opacity-70" />
+                        </a>
+
+                        <a
+                            href={whatsappUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#25D366] hover:bg-[#20ba5a] text-white font-display font-extrabold text-[10px] uppercase tracking-widest rounded-xl transition-all shadow-md"
+                        >
+                            <WhatsAppIcon className="w-3.5 h-3.5 text-white" />
+                            <span>Chat on WhatsApp</span>
+                        </a>
+                    </div>
                 </div>
             </div>
 

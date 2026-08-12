@@ -115,7 +115,7 @@ export default function RootLayout({
                 "name": "Skylight Village Jaj",
                 "image": "https://images.unsplash.com/photo-1504632348771-974e356b80af?q=80&w=1200&auto=format&fit=crop",
                 "url": siteUrl,
-                "telephone": "+96176987654",
+                "telephone": "+96170663399",
                 "priceRange": "$$",
                 "address": {
                     "@type": "PostalAddress",
@@ -139,6 +139,8 @@ export default function RootLayout({
                 "sameAs": [
                     "https://instagram.com/skylightvillagelb",
                     "https://www.facebook.com/Skylightvillage/",
+                    "https://wa.me/96170663399",
+                    "https://maps.app.goo.gl/v3TU1HqX9YGE1hSSA",
                     "https://menu.skylightvillagelb.com"
                 ],
                 "description": "Family-managed camping ground, wooden cabins, scout troop fields, and outdoor day picnic area located 1,200 meters above sea level in Jaj, Jbeil District, Mount Lebanon near the Jaj Cedar Reserve.",
