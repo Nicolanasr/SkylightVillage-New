@@ -4,8 +4,9 @@ import React, { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useSearchParams } from "next/navigation";
-import { Mail, Phone, MapPin, Send, HelpCircle, CheckCircle, AlertTriangle } from "lucide-react";
+import { Mail, Phone, MapPin, Send, HelpCircle, CheckCircle, AlertTriangle, Loader2 } from "lucide-react";
 import WhatsAppIcon from "@/components/WhatsAppIcon";
+import { submitContactForm } from "@/app/actions";
 
 export default function ContactPage() {
     return (
@@ -28,6 +29,7 @@ function ContactForm() {
     });
 
     const [submitted, setSubmitted] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
 
     useEffect(() => {
@@ -41,7 +43,7 @@ function ContactForm() {
         }
     }, [searchParams]);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setErrorMsg("");
 
@@ -51,7 +53,15 @@ function ContactForm() {
             return;
         }
 
-        setSubmitted(true);
+        setIsSubmitting(true);
+        const res = await submitContactForm(formData);
+        setIsSubmitting(false);
+
+        if (res.success) {
+            setSubmitted(true);
+        } else {
+            setErrorMsg(res.error || "Failed to submit inquiry. Please try again.");
+        }
     };
 
     return (
@@ -274,10 +284,20 @@ function ContactForm() {
 
                             <button
                                 type="submit"
-                                className="w-full flex items-center justify-center gap-2 octagon-clip bg-skylight-green hover:bg-skylight-gold text-white hover:text-skylight-dark font-display font-extrabold text-xs tracking-widest py-4 transition-all"
+                                disabled={isSubmitting}
+                                className="w-full flex items-center justify-center gap-2 octagon-clip bg-skylight-green hover:bg-skylight-gold text-white hover:text-skylight-dark font-display font-extrabold text-xs tracking-widest py-4 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                <Send className="w-4 h-4" />
-                                SUBMIT INQUIRY
+                                {isSubmitting ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        SENDING INQUIRY...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Send className="w-4 h-4" />
+                                        SUBMIT INQUIRY
+                                    </>
+                                )}
                             </button>
                         </form>
                     )}

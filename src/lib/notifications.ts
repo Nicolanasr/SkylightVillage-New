@@ -276,3 +276,53 @@ Hotline & WhatsApp: +961 70 663399`;
 
   await Promise.all(tasks);
 }
+
+/**
+ * 3. AUTOMATED CONTACT FORM NOTIFICATION (Triggered when a user submits Contact Us form)
+ */
+export async function sendContactFormNotification(data: {
+  name: string;
+  email?: string;
+  phone: string;
+  subject: string;
+  scoutGroup?: string;
+  groupSize?: string;
+  message: string;
+}) {
+  const textMessage = `📩 *NEW CONTACT INQUIRY RECEIVED!*
+
+👤 *Name*: ${data.name}
+📞 *Phone*: ${data.phone}
+${data.email ? `✉️ *Email*: ${data.email}\n` : ""}${data.scoutGroup === "Yes" ? `🏕️ *Scout Group*: Yes (${data.groupSize} members)\n` : ""}📌 *Subject*: ${data.subject}
+💬 *Message*: ${data.message}`;
+
+  const htmlEmail = `
+    <div style="font-family: Arial, sans-serif; padding: 25px; color: #1c271c; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 16px; background: #fafbfa;">
+      <div style="background: #071308; padding: 20px; border-radius: 12px; text-align: center; color: white; margin-bottom: 20px;">
+        <span style="color: #f59e0b; font-size: 11px; font-weight: bold; text-transform: uppercase; tracking: 2px;">NEW WEBSITE INQUIRY</span>
+        <h2 style="margin: 5px 0 0 0; font-size: 20px; color: white;">${data.subject}</h2>
+      </div>
+
+      <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 13px;">
+        <tr style="background: #f8fafc;"><td style="padding: 10px; font-weight: bold; border: 1px solid #e2e8f0;">Full Name</td><td style="padding: 10px; border: 1px solid #e2e8f0; font-weight: bold;">${data.name}</td></tr>
+        <tr><td style="padding: 10px; font-weight: bold; border: 1px solid #e2e8f0;">Phone Number</td><td style="padding: 10px; border: 1px solid #e2e8f0;"><a href="tel:${data.phone}">${data.phone}</a></td></tr>
+        ${data.email ? `<tr style="background: #f8fafc;"><td style="padding: 10px; font-weight: bold; border: 1px solid #e2e8f0;">Email</td><td style="padding: 10px; border: 1px solid #e2e8f0;"><a href="mailto:${data.email}">${data.email}</a></td></tr>` : ""}
+        ${data.scoutGroup === "Yes" ? `<tr><td style="padding: 10px; font-weight: bold; border: 1px solid #e2e8f0;">Scout Group</td><td style="padding: 10px; border: 1px solid #e2e8f0;">Yes (${data.groupSize} members)</td></tr>` : ""}
+      </table>
+
+      <div style="background: white; border: 1px solid #e2e8f0; padding: 18px; border-radius: 12px; font-size: 14px; color: #334155; line-height: 1.6; margin-bottom: 20px;">
+        <strong style="color: #071308;">Message Content:</strong>
+        <p style="margin: 8px 0 0 0; white-space: pre-wrap; color: #475569;">${data.message}</p>
+      </div>
+
+      <div style="text-align: center; font-size: 11px; color: #64748b; margin-top: 20px; border-t: 1px solid #e2e8f0; padding-top: 15px;">
+        Automatically dispatched from Skylight Village Contact Us Form.
+      </div>
+    </div>
+  `;
+
+  await Promise.all([
+    sendServerEmail(ADMIN_EMAIL, `📩 New Contact Form Inquiry: ${data.name} (${data.subject})`, htmlEmail),
+    sendAutomatedWhatsApp(ADMIN_PHONE, textMessage),
+  ]);
+}

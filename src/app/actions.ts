@@ -2,7 +2,7 @@
 
 import db from "@/lib/db";
 import { revalidatePath } from "next/cache";
-import { sendAdminNewBookingNotification } from "@/lib/notifications";
+import { sendAdminNewBookingNotification, sendContactFormNotification } from "@/lib/notifications";
 
 // 1. Campsite / Stay Booking Action
 export async function createStayBooking(data: {
@@ -596,6 +596,25 @@ export async function createEventReservation(data: {
   } catch (error: any) {
     console.error("Event reservation failure:", error);
     return { success: false, error: error.message || "Failed to reserve event tickets." };
+  }
+}
+
+// 14. Contact Form Submission Action
+export async function submitContactForm(data: {
+  name: string;
+  email?: string;
+  phone: string;
+  subject: string;
+  scoutGroup?: string;
+  groupSize?: string;
+  message: string;
+}) {
+  try {
+    await sendContactFormNotification(data);
+    return { success: true };
+  } catch (error: any) {
+    console.error("Contact form submission error:", error);
+    return { success: false, error: error.message || "Failed to submit contact form." };
   }
 }
 
