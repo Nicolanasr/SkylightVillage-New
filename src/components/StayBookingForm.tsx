@@ -37,15 +37,41 @@ export default function StayBookingForm({
     initialStartDate,
     initialGuests,
 }: StayBookingFormProps) {
-    const [startDate, setStartDate] = useState(initialStartDate || "2026-06-15");
-    const [endDate, setEndDate] = useState(() => {
-        const start = initialStartDate || "2026-06-15";
-        const d = new Date(start);
-        d.setDate(d.getDate() + 2);
+    const getTodayStr = () => {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, "0");
+        const dd = String(today.getDate()).padStart(2, "0");
+        return `${yyyy}-${mm}-${dd}`;
+    };
+
+    const getTomorrowStr = () => {
+        const d = new Date();
+        d.setDate(d.getDate() + 1);
         const yyyy = d.getFullYear();
         const mm = String(d.getMonth() + 1).padStart(2, "0");
         const dd = String(d.getDate()).padStart(2, "0");
         return `${yyyy}-${mm}-${dd}`;
+    };
+
+    const [startDate, setStartDate] = useState(() => {
+        if (initialStartDate) return initialStartDate;
+        return getTodayStr();
+    });
+
+    const [endDate, setEndDate] = useState(() => {
+        if (accommodation.type === "PICNIC_DAY") {
+            return initialStartDate || getTodayStr();
+        }
+        if (initialStartDate) {
+            const d = new Date(initialStartDate);
+            d.setDate(d.getDate() + 1);
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, "0");
+            const dd = String(d.getDate()).padStart(2, "0");
+            return `${yyyy}-${mm}-${dd}`;
+        }
+        return getTomorrowStr();
     });
     const [peopleCount, setPeopleCount] = useState(() => {
         if (initialGuests) {
@@ -67,10 +93,13 @@ export default function StayBookingForm({
 
     // Calculate live pricing with night-threshold support
     useEffect(() => {
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-        const durationDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 3600 * 24));
-        const duration = durationDays >= 0 ? durationDays + 1 : 1;
+        let duration = 1;
+        if (accommodation.type !== "PICNIC_DAY" && endDate && endDate > startDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            const durationDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 3600 * 24));
+            duration = durationDays > 0 ? durationDays : 1;
+        }
 
         // Night threshold: if enabled and duration >= threshold, charge for (duration-1) nights
         const useNightlyRate =
@@ -110,15 +139,26 @@ export default function StayBookingForm({
         setIsNightlyDiscount(useNightlyRate ?? false);
     }, [accommodation, startDate, endDate, peopleCount, selectedAddons]);
 
-    const toggleAddon = (addonId: string) => {
+    const updateAddonQty = (addonId: string, delta: number) => {
         setSelectedAddons((prev) => {
-            const exists = prev.find((a) => a.addonId === addonId);
-            if (exists) {
+            const existing = prev.find((a) => a.addonId === addonId);
+            const currentQty = existing ? existing.quantity : 0;
+            const newQty = currentQty + delta;
+            if (newQty <= 0) {
                 return prev.filter((a) => a.addonId !== addonId);
             } else {
-                return [...prev, { addonId, quantity: 1 }];
+                if (existing) {
+                    return prev.map((a) => (a.addonId === addonId ? { ...a, quantity: newQty } : a));
+                } else {
+                    return [...prev, { addonId, quantity: newQty }];
+                }
             }
         });
+    };
+
+    const getAddonQty = (addonId: string) => {
+        const match = selectedAddons.find((a) => a.addonId === addonId);
+        return match ? match.quantity : 0;
     };
 
     const handleBookingSubmit = async (e: React.FormEvent) => {
@@ -232,29 +272,51 @@ export default function StayBookingForm({
                 </div>
             </div>
 
-            {/* Addons Selection Block */}
+            {/* Addons Selection Block with Quantity Selectors */}
             {accommodation.addons.length > 0 && (
                 <div className="border-t border-gray-100 pt-6">
                     <span className="block text-[10px] font-bold uppercase tracking-widest text-skylight-green mb-3 flex items-center gap-1">
                         <ShoppingBag className="w-4 h-4 text-skylight-gold" />
-                        Campsite selections & addons:
+                        Gear &amp; Equipment Rental Addons:
                     </span>
-                    <div className="grid grid-cols-1 gap-2.5">
+                    <div className="grid grid-cols-1 gap-3">
                         {accommodation.addons.map((a) => {
-                            const isSelected = selectedAddons.some((sel) => sel.addonId === a.id);
+                            const qty = getAddonQty(a.id);
                             return (
-                                <button
+                                <div
                                     key={a.id}
-                                    type="button"
-                                    onClick={() => toggleAddon(a.id)}
-                                    className={`p-3 text-left rounded-xl border text-xs flex justify-between items-center transition-all ${isSelected
-                                            ? "bg-skylight-green-light border-skylight-green text-skylight-green font-semibold"
+                                    className={`p-3.5 rounded-2xl border text-xs flex justify-between items-center transition-all ${
+                                        qty > 0
+                                            ? "bg-amber-50/80 border-amber-300 text-slate-800 shadow-sm"
                                             : "bg-white border-gray-200 text-gray-600 hover:bg-[#fafbfa]"
-                                        }`}
+                                    }`}
                                 >
-                                    <span>{a.name}</span>
-                                    <span className="font-bold text-skylight-green">${a.price} {a.priceType === "PER_NIGHT" ? "/nt" : ""}</span>
-                                </button>
+                                    <div className="pr-2">
+                                        <span className="font-bold text-skylight-green block">{a.name}</span>
+                                        <span className="text-[10px] text-slate-500 font-semibold">
+                                            ${a.price.toFixed(2)} {a.priceType === "PER_NIGHT" ? "/night" : ""}
+                                        </span>
+                                    </div>
+
+                                    {/* Quantity Counter Controls */}
+                                    <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-xl border border-slate-200 flex-shrink-0">
+                                        <button
+                                            type="button"
+                                            onClick={() => updateAddonQty(a.id, -1)}
+                                            className="w-7 h-7 rounded-lg bg-white font-extrabold text-xs text-slate-700 shadow-xs hover:bg-slate-200 transition-colors flex items-center justify-center cursor-pointer border-0"
+                                        >
+                                            -
+                                        </button>
+                                        <span className="w-5 text-center font-extrabold text-xs text-skylight-green">{qty}</span>
+                                        <button
+                                            type="button"
+                                            onClick={() => updateAddonQty(a.id, 1)}
+                                            className="w-7 h-7 rounded-lg bg-skylight-green font-extrabold text-xs text-white shadow-xs hover:bg-emerald-800 transition-colors flex items-center justify-center cursor-pointer border-0"
+                                        >
+                                            +
+                                        </button>
+                                    </div>
+                                </div>
                             );
                         })}
                     </div>

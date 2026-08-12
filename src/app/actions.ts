@@ -40,11 +40,16 @@ export async function createStayBooking(data: {
     // Calculate dynamic pricing
     const start = new Date(data.startDate);
     const end = new Date(data.endDate);
-    const timeDiff = end.getTime() - start.getTime();
-    const daysCount = Math.ceil(timeDiff / (1000 * 3600 * 24));
-    const duration = daysCount >= 0 ? daysCount + 1 : 1;
 
-    // Night-threshold pricing: if enabled and duration >= threshold, charge for (duration - 1) nights instead of duration days
+    let duration = 1;
+    if (acc.type === "PICNIC_DAY" || acc.pricingType === "PER_PERSON_PER_DAY") {
+      duration = 1;
+    } else if (data.endDate && data.endDate > data.startDate) {
+      const diffDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 3600 * 24));
+      duration = diffDays > 0 ? diffDays : 1;
+    }
+
+    // Night-threshold pricing: if enabled and duration >= threshold, charge for (duration - 1) nights
     const useNightlyRate =
       (acc as any).nightThresholdEnabled &&
       duration >= ((acc as any).nightThreshold ?? 5);
@@ -66,7 +71,7 @@ export async function createStayBooking(data: {
       if (match) {
         const itemCost =
           match.priceType === "PER_NIGHT"
-            ? match.price * sel.quantity * duration
+            ? match.price * sel.quantity * billableUnits
             : match.price * sel.quantity;
         addonsCost += itemCost;
         selectionsToInsert.push({

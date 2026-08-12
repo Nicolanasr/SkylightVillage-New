@@ -20,7 +20,10 @@ export default function CustomDatePicker({
     onChange,
 }: CustomDatePickerProps) {
     const [blockedDates, setBlockedDates] = useState<string[]>([]);
-    const [currentMonth, setCurrentMonth] = useState(new Date(2026, 5, 1)); // Initialize near June 2026 as per seeds
+    const [currentMonth, setCurrentMonth] = useState(() => {
+        const now = new Date();
+        return new Date(now.getFullYear(), now.getMonth(), 1);
+    });
     const [selectingStep, setSelectingStep] = useState<"checkin" | "checkout">("checkin");
     const [tempStart, setTempStart] = useState<string | null>(startDate);
 
@@ -100,6 +103,12 @@ export default function CustomDatePicker({
     const handleDayClick = (dayStr: string) => {
         if (isBlocked(dayStr)) return;
 
+        if (accommodationType === "PICNIC_DAY") {
+            setTempStart(dayStr);
+            onChange(dayStr, dayStr);
+            return;
+        }
+
         if (selectingStep === "checkin") {
             setTempStart(dayStr);
             if (endDate && endDate > dayStr && !hasOverlap(dayStr, endDate)) {
@@ -154,36 +163,48 @@ export default function CustomDatePicker({
     return (
         <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm w-full space-y-4">
             {/* Date Header Display */}
-            <div className="grid grid-cols-2 gap-4 border-b border-gray-100 pb-3">
-                <button
-                    type="button"
-                    onClick={() => setSelectingStep("checkin")}
-                    className={`p-2.5 rounded-xl transition-all text-left cursor-pointer border ${selectingStep === "checkin"
-                            ? "bg-skylight-green-light border-skylight-green/40 shadow-sm"
-                            : "bg-gray-50 border-transparent hover:border-gray-300"
-                        }`}
-                >
-                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest block">Check-In Date</span>
-                    <span className="text-xs font-bold text-skylight-green flex items-center gap-1.5 mt-1">
-                        <CalendarIcon className="w-3.5 h-3.5 text-skylight-gold" />
-                        {startDate || "Select Arrival"}
+            {accommodationType === "PICNIC_DAY" ? (
+                <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-left border-b border-gray-100 pb-3">
+                    <span className="text-[9px] font-extrabold text-amber-800 uppercase tracking-widest block">
+                        Day Picnic Date (1 Day Visit)
                     </span>
-                </button>
-                <button
-                    type="button"
-                    onClick={() => setSelectingStep("checkout")}
-                    className={`p-2.5 rounded-xl transition-all text-left cursor-pointer border ${selectingStep === "checkout"
-                            ? "bg-skylight-green-light border-skylight-green/40 shadow-sm"
-                            : "bg-gray-50 border-transparent hover:border-gray-300"
-                        }`}
-                >
-                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest block">Check-Out Date</span>
-                    <span className="text-xs font-bold text-skylight-green flex items-center gap-1.5 mt-1">
-                        <CalendarIcon className="w-3.5 h-3.5 text-skylight-gold" />
-                        {endDate || "Select Departure"}
+                    <span className="text-xs font-extrabold text-skylight-green flex items-center gap-1.5 mt-1">
+                        <CalendarIcon className="w-4 h-4 text-amber-600" />
+                        {startDate || "Select Picnic Date"}
                     </span>
-                </button>
-            </div>
+                </div>
+            ) : (
+                <div className="grid grid-cols-2 gap-4 border-b border-gray-100 pb-3">
+                    <button
+                        type="button"
+                        onClick={() => setSelectingStep("checkin")}
+                        className={`p-2.5 rounded-xl transition-all text-left cursor-pointer border ${selectingStep === "checkin"
+                                ? "bg-skylight-green-light border-skylight-green/40 shadow-sm"
+                                : "bg-gray-50 border-transparent hover:border-gray-300"
+                            }`}
+                    >
+                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest block">Check-In Date</span>
+                        <span className="text-xs font-bold text-skylight-green flex items-center gap-1.5 mt-1">
+                            <CalendarIcon className="w-3.5 h-3.5 text-skylight-gold" />
+                            {startDate || "Select Arrival"}
+                        </span>
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setSelectingStep("checkout")}
+                        className={`p-2.5 rounded-xl transition-all text-left cursor-pointer border ${selectingStep === "checkout"
+                                ? "bg-skylight-green-light border-skylight-green/40 shadow-sm"
+                                : "bg-gray-50 border-transparent hover:border-gray-300"
+                            }`}
+                    >
+                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest block">Check-Out Date</span>
+                        <span className="text-xs font-bold text-skylight-green flex items-center gap-1.5 mt-1">
+                            <CalendarIcon className="w-3.5 h-3.5 text-skylight-gold" />
+                            {endDate || "Select Departure"}
+                        </span>
+                    </button>
+                </div>
+            )}
 
             {/* Calendar Controls */}
             <div className="flex items-center justify-between px-1">

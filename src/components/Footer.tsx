@@ -9,7 +9,6 @@ export default function Footer() {
             <div className="container mx-auto px-4 md:px-8 grid grid-cols-1 md:grid-cols-4 gap-12 border-b border-skylight-green/10 pb-12">
                 {/* Brand */}
                 <div className="flex flex-col space-y-4">
-
                     <Image
                         src="/images/Skylight-logo-white.png"
                         alt="Skylight Village Logo"
@@ -38,8 +37,18 @@ export default function Footer() {
                             </Link>
                         </li>
                         <li>
-                            <Link href="/restaurant" className="hover:text-white transition-colors">
-                                Restaurant Menu
+                            <a 
+                                href="https://menu.skylightvillagelb.com/" 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="hover:text-white transition-colors text-amber-400"
+                            >
+                                Digital Menu ↗
+                            </a>
+                        </li>
+                        <li>
+                            <Link href="/events" className="hover:text-white transition-colors">
+                                Events & Gatherings
                             </Link>
                         </li>
                         <li>

@@ -55,9 +55,7 @@ import {
   CheckCircle,
   XCircle,
   Layers,
-  Package,
 } from "lucide-react";
-import AdminStockDashboard from "@/components/AdminStockDashboard";
 
 interface AdminDashboardClientProps {
   stats: {
@@ -154,13 +152,13 @@ export default function AdminDashboardClient({
     }
   };
 
-  const [activeTab, setActiveTab] = useState<"calendar" | "stays" | "restaurant" | "accommodations" | "events" | "hikes" | "reviews" | "zones" | "stock">("calendar");
+  const [activeTab, setActiveTab] = useState<"calendar" | "stays" | "restaurant" | "accommodations" | "events" | "hikes" | "reviews" | "zones">("calendar");
 
   React.useEffect(() => {
     if (typeof window !== "undefined") {
       const searchParams = new URLSearchParams(window.location.search);
       const tabParam = searchParams.get("tab");
-      if (tabParam === "stock" || tabParam === "calendar" || tabParam === "stays" || tabParam === "restaurant" || tabParam === "accommodations" || tabParam === "events" || tabParam === "hikes" || tabParam === "reviews" || tabParam === "zones") {
+      if (tabParam === "calendar" || tabParam === "stays" || tabParam === "restaurant" || tabParam === "accommodations" || tabParam === "events" || tabParam === "hikes" || tabParam === "reviews" || tabParam === "zones") {
         setActiveTab(tabParam as any);
       }
     }
@@ -750,19 +748,7 @@ export default function AdminDashboardClient({
           <div className="text-xs text-slate-500 font-bold mt-2">Reservations cataloged</div>
         </div>
 
-        {/* Alert Card (Low Stock) */}
-        <div
-          onClick={() => setActiveTab("stock")}
-          className="bg-white border border-slate-200 rounded-2xl p-6 hover:border-red-500/30 transition duration-300 shadow-sm shadow-slate-100 cursor-pointer"
-          title="Click to manage Stock & Provisions Ledger"
-        >
-          <div className="flex justify-between items-start text-amber-600 mb-4">
-            <span className="text-xs font-extrabold uppercase tracking-wider text-slate-400">Stock Alerts</span>
-            <AlertCircle size={18} />
-          </div>
-          <div className="text-3xl font-black text-slate-800">{stats.lowStockCount} items</div>
-          <div className="text-xs text-slate-500 font-bold mt-2">Triggering replenishment warning</div>
-        </div>
+
 
       </section>
 
@@ -777,7 +763,6 @@ export default function AdminDashboardClient({
           { id: "hikes", label: "Local Attractions", icon: MapPin },
           { id: "reviews", label: "Customer Reviews", icon: Star },
           { id: "zones", label: "Dining Zones", icon: Layers },
-          { id: "stock", label: "Stock & Assets", icon: Package },
         ].map((tab) => {
           const IconComp = tab.icon;
           return (
@@ -2125,11 +2110,7 @@ export default function AdminDashboardClient({
           </div>
         )}
 
-        {activeTab === "stock" && (
-          <div className="space-y-6 bg-slate-50/50 p-6 rounded-3xl border border-slate-100">
-            <AdminStockDashboard stockItems={stockItems} wasteLogs={wasteLogs} initialAssets={assets} stockMovements={stockMovements} />
-          </div>
-        )}
+
 
       </section>
 

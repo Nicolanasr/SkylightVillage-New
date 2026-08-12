@@ -8,438 +8,416 @@ import AccommodationsSlider from "@/components/AccommodationsSlider";
 import LocalAttractionsList from "@/components/LocalAttractionsList";
 import db from "@/lib/db";
 import {
-    Compass,
-    Flame,
-    Moon,
-    Sparkles,
-    Utensils,
-    MapPin,
-    Calendar,
-    ChevronRight,
-    CheckCircle,
+  Compass,
+  Flame,
+  Moon,
+  Sparkles,
+  Utensils,
+  MapPin,
+  Calendar,
+  ChevronRight,
+  CheckCircle,
+  ArrowRight,
+  ShieldCheck,
+  Trees,
+  Coffee,
+  Ticket
 } from "lucide-react";
 
-export const revalidate = 0; // Disable static rendering cache to get live DB bookings
+export const revalidate = 0; // Disable static rendering cache for live data
 
 export default async function HomePage() {
-    // Fetch dynamic data from SQLite
-    const accommodations = await db.accommodation.findMany({
-        include: { addons: true, images: true },
-    });
+  const accommodations = await db.accommodation.findMany({
+    include: { addons: true, images: true },
+  });
 
-    const events = await db.event.findMany({
-        take: 3,
-        orderBy: { date: "asc" },
-    });
+  const events = await db.event.findMany({
+    take: 2,
+    orderBy: { date: "asc" },
+  });
 
-    const zones = await db.restaurantZone.findMany({
-        include: { tables: true },
-    });
+  const attractions = await db.localAttraction.findMany();
 
-    const attractions = await db.localAttraction.findMany();
+  return (
+    <div className="bg-[#FAF8F5] text-slate-800 font-sans selection:bg-amber-500 selection:text-white">
+      <Navbar />
 
-    // Slider logic moved to client component
+      {/* =========================================================================
+          HERO SECTION - High Altitude Stargazing Atmosphere
+         ========================================================================= */}
+      <section className="relative min-h-[92vh] flex items-center justify-center bg-[#071308] text-white py-24 px-4 md:px-8 overflow-hidden">
+        {/* Hero Background Image with parallax overlay */}
+        <div
+          className="absolute inset-0 bg-cover bg-center z-0 scale-105 transition-transform duration-1000"
+          style={{
+            backgroundImage:
+              "url('https://images.unsplash.com/photo-1504632348771-974e356b80af?q=80&w=2530&auto=format&fit=crop')",
+          }}
+        />
 
-    return (
-        <>
-            <Navbar />
+        {/* Ambient Dark Emerald Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#071308]/75 via-[#071308]/60 to-[#071308] z-0" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(212,175,55,0.15)_0%,transparent_70%)] z-0" />
 
-            {/* Hero Section */}
-            <section className="relative min-h-[90vh] flex items-center justify-center bg-[#0d1c0e] text-white py-20 px-4 md:px-8 overflow-hidden">
-                {/* Background Image using picsum.photos */}
-                <div
-                    className="absolute inset-0 bg-cover bg-center z-0"
-                    // style={{ backgroundImage: "url('/images/skylight-panorama.png')" }}
-                    style={{ backgroundImage: "url('https://images.unsplash.com/photo-1504632348771-974e356b80af?q=80&w=2530&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')" }}
+        <div className="container mx-auto max-w-5xl relative z-10 text-center flex flex-col items-center pt-8">
+          {/* Altitude Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-amber-400/30 text-amber-300 text-xs font-bold uppercase tracking-widest mb-8 shadow-xl">
+            <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+            <span>1,200m Altitude &bull; Jaj, Mount Lebanon</span>
+          </div>
 
-                />
+          <h1 className="text-4xl sm:text-6xl md:text-7xl font-display font-extrabold tracking-tight leading-[1.1] max-w-4xl text-white mb-6">
+            Take Memories, <br />
+            <span className="bg-gradient-to-r from-amber-200 via-amber-400 to-amber-200 bg-clip-text text-transparent">
+              Leave Only Footprints.
+            </span>
+          </h1>
 
-                {/* Dark Gradient Overlay */}
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(13,28,14,0.6)_0%,#050a05_100%)] z-0" />
+          <p className="text-base sm:text-lg text-emerald-100/90 font-light max-w-2xl leading-relaxed mb-10">
+            Welcome to Skylight Village in Jaj, Mount Lebanon. Pitch your tent, stay in our cozy wooden cabins, enjoy a day picnic, or gather around the fire for traditional Lebanese grill and fresh shisha at 1,200m altitude.
+          </p>
 
-                {/* Ambient Grid overlay */}
-                <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:4rem_4rem] z-0" />
+          <div className="flex flex-col sm:flex-row gap-4 justify-center w-full max-w-xl">
+            <Link
+              href="/stay"
+              className="px-8 py-4 bg-amber-400 hover:bg-amber-300 text-[#071308] font-display font-extrabold text-xs tracking-widest uppercase rounded-xl shadow-lg shadow-amber-400/20 hover:-translate-y-0.5 transition-all text-center whitespace-nowrap"
+            >
+              Book Camping &amp; Stay
+            </Link>
+            <a
+              href="https://menu.skylightvillagelb.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-8 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/30 font-display font-extrabold text-xs tracking-widest uppercase rounded-xl hover:-translate-y-0.5 transition-all text-center inline-flex items-center justify-center gap-2 whitespace-nowrap"
+            >
+              <span>View Digital Menu</span>
+              <ArrowRight size={14} />
+            </a>
+          </div>
+        </div>
+      </section>
 
-                <div className="container mx-auto max-w-5xl relative z-10 text-center flex flex-col items-center">
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-skylight-green/60 border border-skylight-gold/30 text-skylight-gold text-[10px] font-semibold uppercase tracking-widest mb-6 animate-pulse">
-                        <Sparkles className="w-3.5 h-3.5" />
-                        1,200m Altitude • Jaj, Mount Lebanon
-                    </div>
+      {/* =========================================================================
+          GLASSMORPHIC SEARCH BAR
+         ========================================================================= */}
+      <section className="relative z-20 px-4 -mt-10">
+        <form
+          action="/stay"
+          method="GET"
+          className="container mx-auto max-w-4xl bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-emerald-900/10 p-6 md:p-8"
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end">
+            <div>
+              <label className="block text-[10px] font-extrabold uppercase tracking-widest text-emerald-900 mb-2">
+                Lodging Type
+              </label>
+              <select
+                name="type"
+                className="w-full p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-400"
+              >
+                <option value="ALL">All Packages &amp; Day Use</option>
+                <option value="PICNIC_DAY">Day Picnic &amp; Table Setup</option>
+                <option value="INDIVIDUAL_CAMP">Family &amp; Group Camping</option>
+                <option value="SCOUT_ZONE">Scout &amp; Youth Group Camping</option>
+                <option value="WOOD_TENT">Wooden Tent Cabins (Glamping)</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-[10px] font-extrabold uppercase tracking-widest text-emerald-900 mb-2">
+                Check In
+              </label>
+              <input
+                type="date"
+                name="startDate"
+                defaultValue={new Date().toISOString().split("T")[0]}
+                className="w-full p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-400"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-extrabold uppercase tracking-widest text-emerald-900 mb-2">
+                Guests
+              </label>
+              <input
+                type="number"
+                name="guests"
+                min="1"
+                defaultValue="2"
+                className="w-full p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-400"
+              />
+            </div>
+            <button
+              type="submit"
+              className="w-full p-3.5 bg-[#0a1f0c] hover:bg-emerald-800 text-amber-300 rounded-xl text-xs font-display font-extrabold uppercase tracking-widest shadow-md transition-all cursor-pointer border-0"
+            >
+              Check Availability
+            </button>
+          </div>
+        </form>
+      </section>
 
-                    <h1 className="text-4xl md:text-6xl font-display font-extrabold tracking-tight leading-tight max-w-4xl text-[#fafbfa] mb-6">
-                        Take Memories, <br className="hidden md:inline" />
-                        <span className="text-skylight-gold">Leave Only Footprints.</span>
-                    </h1>
+      {/* =========================================================================
+          EDITORIAL MOUNTAIN STORY SECTION - Fixed Image & Badge Layout
+         ========================================================================= */}
+      <section className="py-24 px-4 md:px-8">
+        <div className="container mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
 
-                    <p className="text-sm md:text-lg text-gray-300 font-light max-w-2xl leading-relaxed mb-10">
-                        Escape the city heat to Mount Lebanon's premier stargazing camp. Unwind in unique octagonal wood bungalows, pitch a tent beneath the stars, and dine around our massive central fireplace.
-                    </p>
-
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center w-full max-w-md">
-                        <Link
-                            href="/stay"
-                            className="premium-btn min-w-[240px] bg-skylight-gold text-skylight-dark hover:bg-white hover:text-skylight-green text-center font-display font-extrabold text-xs tracking-widest px-8 py-4 hover:-translate-y-0.5 transition-all"
-                        >
-                            BOOK CAMPING &amp; STAY
-                        </Link>
-                        <Link
-                            href="/restaurant"
-                            className="premium-btn min-w-[240px] border-2 border-white/80 text-white hover:bg-white hover:text-skylight-dark text-center font-display font-extrabold text-xs tracking-widest px-8 py-4 hover:-translate-y-0.5 transition-all"
-                        >
-                            RESTAURANT BOOKINGS
-                        </Link>
-                    </div>
+          {/* Left Feature Visual */}
+          <div className="lg:col-span-6">
+            <div className="relative rounded-3xl overflow-hidden shadow-2xl aspect-[4/3] border border-slate-200/80">
+              <img
+                src="https://images.unsplash.com/photo-1510312305653-8ed496efae75?q=80&w=1600&auto=format&fit=crop"
+                alt="Skylight Village Mountain Stargazing"
+                className="object-cover w-full h-full"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+              
+              {/* Clean Overlay Content within bounds */}
+              <div className="absolute bottom-6 left-6 right-6 text-white flex items-end justify-between">
+                <div>
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-amber-300">
+                    Peace &amp; Elevation
+                  </span>
+                  <h3 className="text-xl font-display font-bold mt-0.5">Stargazing Above the Clouds</h3>
                 </div>
-            </section>
-
-
-            <section className="relative z-20 px-4 -mt-8">
-                <form
-                    action="/stay"
-                    method="GET"
-                    className="container mx-auto max-w-4xl bg-white rounded-2xl shadow-2xl border border-skylight-green/10 p-6 md:p-8"
-                >
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
-                        <div>
-                            <label className="block text-[10px] font-bold uppercase tracking-widest text-skylight-green mb-2">
-                                Stay Type
-                            </label>
-                            <select
-                                name="type"
-                                className="w-full p-3 rounded-lg bg-[#fafbfa] border border-gray-200 text-xs font-semibold text-skylight-green focus:outline-none focus:border-skylight-green"
-                            >
-                                <option value="ALL">All Lodging Options</option>
-                                <option value="INDIVIDUAL_CAMP">Normal Campground Spot</option>
-                                <option value="SCOUT_ZONE">Scout Camp</option>
-                                <option value="WOOD_TENT">Wood Tents (1-4 Persons)</option>
-                                <option value="BUNGALOW">Bungalows (Coming Soon)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-[10px] font-bold uppercase tracking-widest text-skylight-green mb-2">
-                                Check In
-                            </label>
-                            <input
-                                type="date"
-                                name="startDate"
-                                defaultValue="2026-06-15"
-                                className="w-full p-3 rounded-lg bg-[#fafbfa] border border-gray-200 text-xs font-semibold text-skylight-green focus:outline-none focus:border-skylight-green"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-[10px] font-bold uppercase tracking-widest text-skylight-green mb-2">
-                                Guests Count
-                            </label>
-                            <input
-                                type="number"
-                                name="guests"
-                                min="1"
-                                defaultValue="2"
-                                className="w-full p-3 rounded-lg bg-[#fafbfa] border border-gray-200 text-xs font-semibold text-skylight-green focus:outline-none focus:border-skylight-green"
-                            />
-                        </div>
-                        <button
-                            type="submit"
-                            className="w-full p-3.5 bg-skylight-green hover:bg-skylight-dark text-white rounded-lg text-xs font-display font-bold uppercase tracking-widest text-center shadow-lg transition-colors cursor-pointer border-0"
-                        >
-                            Check Availability
-                        </button>
-                    </div>
-                </form>
-            </section>
-
-            {/* Main Showcase / Offerings Header */}
-            <section className="py-12 text-center px-4 md:px-8 border-t border-gray-100">
-                <div className="container mx-auto max-w-3xl">
-                    <h2 className="text-3xl md:text-4xl font-display font-extrabold text-skylight-green mb-4">
-                        Mountain Lodging &amp; Camping Mapped for Everyone
-                    </h2>
-                    <p className="text-sm md:text-base text-gray-500 font-light leading-relaxed">
-                        Discover Mount Lebanon's premier stargazing sanctuary. Choose from scout zone fields, private camping spots, A-frame wood tents, and luxury coming-soon bungalows.
-                    </p>
+                <div className="hidden sm:flex items-center gap-2 bg-white/20 backdrop-blur-md px-3.5 py-2 rounded-xl border border-white/30 text-amber-300 text-xs font-bold">
+                  <Flame size={16} />
+                  <span>Central Fireplace</span>
                 </div>
-            </section>
-            <AccommodationsSlider accommodations={accommodations} />
+              </div>
+            </div>
+          </div>
 
+          {/* Right Editorial Copy */}
+          <div className="lg:col-span-6 space-y-6">
+            <span className="text-xs font-black uppercase tracking-widest text-emerald-800 bg-emerald-100/80 px-3.5 py-1 rounded-full border border-emerald-200">
+              The Skylight Experience
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-display font-extrabold text-[#071308] leading-tight">
+              Where Crisp Air Meets Authentic Mountain Hospitality
+            </h2>
+            <p className="text-slate-600 font-light text-base leading-relaxed">
+              Located 1,200 meters above sea level in Jaj, Mount Lebanon, Skylight Village offers an escape from urban life. Surround yourself with pine-scented breezes, panoramic valley views, and rich traditional dining.
+            </p>
 
-            {/* Experience Overview Section */}
-            <section className="py-20 px-4 md:px-8 bg-gradient-to-br from-skylight-green-light to-skylight-gold/10">
-                <div className="container mx-auto max-w-5xl">
-                    <h2 className="text-3xl md:text-4xl font-display font-extrabold text-skylight-green mb-6 text-center">
-                        Experience Skylight Village
-                    </h2>
-                    <p className="text-lg text-gray-600 font-light mb-8 text-center">
-                        Discover unforgettable adventures, serene nature, and premium amenities that make Skylight Village the ultimate mountain getaway.
-                    </p>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <div className="bg-white rounded-2xl shadow-lg border border-skylight-green/10 overflow-hidden flex flex-col justify-between hover:shadow-xl transition-all duration-300">
-                            <div className="relative h-48 w-full overflow-hidden bg-skylight-dark">
-                                <img
-                                    src="https://picsum.photos/seed/experience-camp/600/400"
-                                    alt="Camping &amp; Stays"
-                                    className="object-cover w-full h-full hover:scale-105 transition-transform duration-500"
-                                />
-                            </div>
-                            <div className="p-6 flex-1 flex flex-col justify-between">
-                                <div>
-                                    <h3 className="font-display font-bold text-lg text-skylight-green mb-3">Camping &amp; Stays</h3>
-                                    <p className="text-sm text-gray-500 mb-6 font-light leading-relaxed">Cozy bungalows, wood tents, and open-air campsites.</p>
-                                </div>
-                                <Link href="/stay" className="premium-btn bg-skylight-green text-white hover:bg-skylight-gold hover:text-skylight-dark font-display font-bold text-xs tracking-widest py-3 transition-all text-center block w-full">
-                                    Explore Stays
-                                </Link>
-                            </div>
-                        </div>
-
-                        <div className="bg-white rounded-2xl shadow-lg border border-skylight-green/10 overflow-hidden flex flex-col justify-between hover:shadow-xl transition-all duration-300">
-                            <div className="relative h-48 w-full overflow-hidden bg-skylight-dark">
-                                <img
-                                    src="https://picsum.photos/seed/experience-events/600/400"
-                                    alt="Events &amp; Activities"
-                                    className="object-cover w-full h-full hover:scale-105 transition-transform duration-500"
-                                />
-                            </div>
-                            <div className="p-6 flex-1 flex flex-col justify-between">
-                                <div>
-                                    <h3 className="font-display font-bold text-lg text-skylight-green mb-3">Events &amp; Activities</h3>
-                                    <p className="text-sm text-gray-500 mb-6 font-light leading-relaxed">Star‑gazing nights, hiking tours, and community gatherings.</p>
-                                </div>
-                                <Link href="/events" className="premium-btn bg-skylight-green text-white hover:bg-skylight-gold hover:text-skylight-dark font-display font-bold text-xs tracking-widest py-3 transition-all text-center block w-full">
-                                    View Events
-                                </Link>
-                            </div>
-                        </div>
-
-                        <div className="bg-white rounded-2xl shadow-lg border border-skylight-green/10 overflow-hidden flex flex-col justify-between hover:shadow-xl transition-all duration-300">
-                            <div className="relative h-48 w-full overflow-hidden bg-skylight-dark">
-                                <img
-                                    src="https://picsum.photos/seed/experience-dining/600/400"
-                                    alt="Dining &amp; Zones"
-                                    className="object-cover w-full h-full hover:scale-105 transition-transform duration-500"
-                                />
-                            </div>
-                            <div className="p-6 flex-1 flex flex-col justify-between">
-                                <div>
-                                    <h3 className="font-display font-bold text-lg text-skylight-green mb-3">Dining &amp; Zones</h3>
-                                    <p className="text-sm text-gray-500 mb-6 font-light leading-relaxed">Authentic mountain cuisine and scenic dining zones.</p>
-                                </div>
-                                <Link href="/restaurant" className="premium-btn bg-skylight-green text-white hover:bg-skylight-gold hover:text-skylight-dark font-display font-bold text-xs tracking-widest py-3 transition-all text-center block w-full">
-                                    Reserve a Table
-                                </Link>
-                            </div>
-                        </div>
-                    </div>
+            <div className="grid grid-cols-2 gap-4 pt-2">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
+                  <Trees size={18} />
                 </div>
-            </section>
-
-            {/* Local Attractions Section */}
-            <section className="py-20 px-4 md:px-8 bg-gradient-to-br from-white to-skylight-green-light/20 border-t border-gray-100">
-                <div className="container mx-auto max-w-5xl">
-                    <div className="text-center max-w-2xl mx-auto mb-16">
-                        <span className="text-[10px] font-bold tracking-widest text-skylight-gold uppercase">
-                            Adventure Awaits
-                        </span>
-                        <h2 className="text-3xl md:text-4xl font-display font-extrabold text-skylight-green mt-2 mb-4">
-                            Local Attractions
-                        </h2>
-                        <p className="text-sm text-gray-500 font-light leading-relaxed">
-                            Explore the natural beauty and cultural gems surrounding Skylight Village in Jaj, Mount Lebanon.
-                        </p>
-                    </div>
-
-                    <LocalAttractionsList attractions={attractions} />
+                <span className="text-xs font-bold text-slate-800">Near Jaj Cedar Reserve</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
+                  <Coffee size={18} />
                 </div>
-            </section>
+                <span className="text-xs font-bold text-slate-800">Fireplace Lodge &amp; Shisha</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
+                  <Moon size={18} />
+                </div>
+                <span className="text-xs font-bold text-slate-800">Zero Light Pollution</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
+                  <ShieldCheck size={18} />
+                </div>
+                <span className="text-xs font-bold text-slate-800">24/7 Secured Grounds</span>
+              </div>
+            </div>
 
-            {/* Testimonials Section */}
-            <TestimonialSlider />
+            <div className="pt-4">
+              <Link
+                href="/about"
+                className="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-widest text-[#071308] hover:text-emerald-700 transition-colors group"
+              >
+                <span>Read Our Venue Story</span>
+                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </div>
+          </div>
 
-            {/* Scenic Infrastructure Highlight */}
-            <section className="bg-skylight-green-light/40 py-20 px-4 md:px-8 border-y border-skylight-green/5">
-                <div className="container mx-auto max-w-5xl">
+        </div>
+      </section>
 
-                    <span className="text-[10px] font-bold tracking-widest text-skylight-green uppercase">
-                        Premium Infrastructure
+      {/* =========================================================================
+          LODGING SHOWCASE SLIDER - Clean Light Warm Background
+         ========================================================================= */}
+      <AccommodationsSlider accommodations={accommodations} />
+
+      {/* =========================================================================
+          CUISINE & DINING SPOTLIGHT - Direct External Link to Digital Menu App
+         ========================================================================= */}
+      <section className="py-24 px-4 md:px-8 bg-gradient-to-b from-[#FAF8F5] to-emerald-50/40">
+        <div className="container mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+
+          {/* Text & Features */}
+          <div className="lg:col-span-6 space-y-6">
+            <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-amber-100 text-amber-800 text-[11px] font-extrabold uppercase tracking-widest">
+              <Utensils size={14} className="text-amber-600" />
+              Authentic Lebanese Mezza &amp; Grill
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-display font-extrabold text-[#071308] leading-tight">
+              A Warm Culinary Haven Under the Open Sky
+            </h2>
+            <p className="text-slate-600 font-light text-base leading-relaxed">
+              Indulge in freshly prepared Cold and Hot Mezza, charcoal-grilled Taouk and Kebabs, crisp beverages, and premium Shisha. Browse our full online digital menu to view all dishes and live options.
+            </p>
+
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
+                <CheckCircle className="w-4 h-4 text-emerald-700 flex-shrink-0" />
+                <span>Cold &amp; Hot Lebanese Mezza</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
+                <CheckCircle className="w-4 h-4 text-emerald-700 flex-shrink-0" />
+                <span>Lebanese Charcoal Grill</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
+                <CheckCircle className="w-4 h-4 text-emerald-700 flex-shrink-0" />
+                <span>Clay Head Shisha Service</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
+                <CheckCircle className="w-4 h-4 text-emerald-700 flex-shrink-0" />
+                <span>Outdoor Mountain Dining</span>
+              </div>
+            </div>
+
+            <div className="pt-4">
+              <a
+                href="https://menu.skylightvillagelb.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-8 py-4 bg-[#071308] hover:bg-emerald-900 text-amber-300 font-display font-extrabold text-xs tracking-widest uppercase rounded-xl shadow-lg transition-all inline-flex items-center gap-2 whitespace-nowrap"
+              >
+                <span>View Full Digital Menu</span>
+                <ArrowRight size={16} />
+              </a>
+            </div>
+          </div>
+
+          {/* Visual Showcase - Single Authentic Mezza Image */}
+          <div className="lg:col-span-6">
+            <div className="relative rounded-3xl overflow-hidden shadow-2xl aspect-[4/3] border border-slate-200/80">
+              <img
+                src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=1200&auto=format&fit=crop"
+                alt="Lebanese Grill & Mezza"
+                className="object-cover w-full h-full"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+              <div className="absolute bottom-6 left-6 right-6 text-white">
+                <span className="text-[10px] font-extrabold uppercase tracking-widest text-amber-300">
+                  Authentic Taste
+                </span>
+                <h3 className="text-xl font-display font-bold mt-0.5">Lebanese Mezza &amp; Charcoal Grill</h3>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* =========================================================================
+          LOCAL ATTRACTIONS & ADVENTURES
+         ========================================================================= */}
+      <section className="py-20 px-4 md:px-8 bg-white border-t border-slate-100">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center max-w-2xl mx-auto mb-14">
+            <span className="text-xs font-extrabold uppercase tracking-widest text-amber-600">
+              Discover Jaj &amp; Surrounding Heights
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-display font-extrabold text-[#071308] mt-2">
+              Local Attractions &amp; Hikes
+            </h2>
+            <p className="text-slate-500 font-light text-sm mt-3">
+              Immerse yourself in ancient cedar groves, historical sites, and scenic mountain trails.
+            </p>
+          </div>
+
+          <LocalAttractionsList attractions={attractions} />
+        </div>
+      </section>
+
+      {/* =========================================================================
+          TESTIMONIALS & GUEST REVIEWS
+         ========================================================================= */}
+      <TestimonialSlider />
+
+      {/* =========================================================================
+          UPCOMING EVENTS & EXPEDITIONS - Warm Catchy Inviting Design
+         ========================================================================= */}
+      <section className="bg-gradient-to-b from-amber-50/60 via-white to-amber-50/30 py-24 px-4 md:px-8 border-t border-amber-200/50">
+        <div className="container mx-auto max-w-6xl">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-12">
+            <div>
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-amber-100 text-amber-800 text-[11px] font-extrabold uppercase tracking-widest mb-2">
+                <Ticket size={14} className="text-amber-600" />
+                Gatherings &amp; Expeditions
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-display font-extrabold text-[#071308]">
+                Upcoming Events &amp; Experiences
+              </h2>
+            </div>
+            <Link
+              href="/events"
+              className="inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-widest text-emerald-800 hover:text-emerald-950 mt-4 sm:mt-0 transition-colors"
+            >
+              <span>Explore All Events</span>
+              <ChevronRight size={16} />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {events.map((e) => (
+              <div
+                key={e.id}
+                className="bg-white rounded-3xl border border-amber-200/80 p-8 shadow-xl hover:shadow-2xl hover:border-amber-400 transition-all flex flex-col justify-between space-y-6 group"
+              >
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold">
+                      <Calendar className="w-4 h-4 text-amber-600" />
+                      {new Date(e.date).toLocaleDateString("en-US", {
+                        month: "long",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
                     </span>
-                    <h2 className="text-3xl md:text-4xl font-display font-extrabold text-skylight-green mt-2">
-                        Comfort Meets Pure Mountain Wilderness
-                    </h2>
-                    <p className="text-xs text-gray-500 font-light mt-3 leading-relaxed">
-                        We provide essential amenities to make your mountain camping experience comfortable, hygienic, and extremely memorable.
-                    </p>
+                    <span className="bg-[#071308] text-amber-300 text-[10px] font-extrabold px-3.5 py-1 rounded-full shadow-sm">
+                      {e.price > 0 ? `Ticket: $${e.price.toFixed(0)}` : "Free Entry"}
+                    </span>
+                  </div>
+
+                  <h3 className="font-display font-bold text-2xl text-[#071308] group-hover:text-emerald-900 transition-colors">
+                    {e.title}
+                  </h3>
+
+                  <p className="text-xs text-slate-600 font-light leading-relaxed">
+                    {e.description}
+                  </p>
                 </div>
 
-                <div className="mt-8 container mx-auto max-w-5xl grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div className="bg-white p-8 rounded-2xl border border-skylight-green/10 shadow-sm flex flex-col items-center text-center">
-                        <div className="octagon-clip bg-skylight-green p-4 text-skylight-gold mb-6">
-                            <Flame className="w-6 h-6" />
-                        </div>
-                        <h3 className="font-display font-bold text-lg text-skylight-green mb-3">
-                            Massive Cabin Fireplace
-                        </h3>
-                        <p className="text-xs text-gray-500 font-light leading-relaxed">
-                            Gather around the fireside inside our mountain lodge. Sip hot tea, tell campfire stories, and trade acoustic sets with scouts.
-                        </p>
-                    </div>
-
-                    <div className="bg-white p-8 rounded-2xl border border-skylight-green/10 shadow-sm flex flex-col items-center text-center">
-                        <div className="octagon-clip bg-skylight-green p-4 text-skylight-gold mb-6">
-                            <Moon className="w-6 h-6" />
-                        </div>
-                        <h3 className="font-display font-bold text-lg text-skylight-green mb-3">
-                            Stargazing Sanctuary
-                        </h3>
-                        <p className="text-xs text-gray-500 font-light leading-relaxed">
-                            Jaj features crisp, unpolluted atmosphere. Perfect for amateur astronomers and romantic stargazers viewing meteors.
-                        </p>
-                    </div>
-
-                    <div className="bg-white p-8 rounded-2xl border border-skylight-green/10 shadow-sm flex flex-col items-center text-center">
-                        <div className="octagon-clip bg-skylight-green p-4 text-skylight-gold mb-6">
-                            <Compass className="w-6 h-6" />
-                        </div>
-                        <h3 className="font-display font-bold text-lg text-skylight-green mb-3">
-                            Hiking &amp; Extreme Sports
-                        </h3>
-                        <p className="text-xs text-gray-500 font-light leading-relaxed">
-                            Direct access to Mount Lebanon hiking trails. Coming soon: extreme zip lines, monkey bars, and rope challenges!
-                        </p>
-                    </div>
+                <div className="border-t border-slate-100 pt-5 flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+                    <MapPin className="w-4 h-4 text-amber-600" />
+                    <span>Jaj Campfire Grounds</span>
+                  </div>
+                  <Link
+                    href={`/events/${e.id}`}
+                    className="px-6 py-3 bg-[#071308] hover:bg-emerald-900 text-amber-300 font-display font-extrabold text-[10px] uppercase tracking-widest rounded-xl transition-all shadow-md whitespace-nowrap"
+                  >
+                    View Details &amp; Book
+                  </Link>
                 </div>
-            </section >
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-            {/* Restaurant Dining Spotlight */}
-            < section className="py-20 px-4 md:px-8" >
-                <div className="container mx-auto max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                    <div className="space-y-6">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-skylight-green-light border border-skylight-green/10 text-skylight-green text-[9px] font-bold uppercase tracking-widest">
-                            <Utensils className="w-3.5 h-3.5 text-skylight-gold" />
-                            Mountain Dine &amp; Fireplace
-                        </span>
-                        <h2 className="text-3xl md:text-4xl font-display font-extrabold text-skylight-green leading-tight">
-                            A Warm Culinary Haven Under the Stars
-                        </h2>
-                        <p className="text-xs text-gray-500 font-light leading-relaxed">
-                            Our rustic restaurant serves authentic charcoal grills, freshly tossed mezze, ice-cold Golden Almza beers, and premium traditional double-apple shisha. Reserve a dining table in your preferred zone: near the playground for family supervision, or on the valley-view terrace.
-                        </p>
-
-                        <div className="grid grid-cols-2 gap-4 border-t border-gray-100 pt-6">
-                            {zones.map((z) => (
-                                <div key={z.id} className="flex items-center gap-2">
-                                    <CheckCircle className="w-4 h-4 text-skylight-gold flex-shrink-0" />
-                                    <span className="text-xs font-semibold text-skylight-green">{z.name}</span>
-                                </div>
-                            ))}
-                        </div>
-
-                        <div className="pt-4 flex gap-4">
-                            <Link
-                                href="/restaurant"
-                                className="premium-btn bg-skylight-green hover:bg-skylight-gold text-white hover:text-skylight-dark font-display font-bold text-[10px] tracking-widest px-8 py-3.5 transition-all"
-                            >
-                                RESERVE DINING TABLE
-                            </Link>
-                        </div>
-                    </div>
-
-                    <div className="glassmorphic p-8 rounded-3xl border border-skylight-green/10 shadow-2xl relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-skylight-gold/10 rounded-full blur-2xl" />
-                        <h3 className="font-display font-extrabold text-xl text-skylight-green border-b border-gray-100 pb-3 mb-4">
-                            Our Active Zones &amp; Tables
-                        </h3>
-                        <div className="space-y-4">
-                            {zones.map((z) => (
-                                <Link
-                                    key={z.id}
-                                    href={`/restaurant/zones/${z.slug}`}
-                                    className="flex items-center justify-between bg-skylight-green-light/20 p-3.5 rounded-xl border border-skylight-green/5 hover:border-skylight-gold/50 transition-all hover:bg-skylight-green-light/40 group"
-                                >
-                                    <div>
-                                        <h4 className="text-xs font-bold text-skylight-green group-hover:text-skylight-gold transition-colors">
-                                            {z.name}
-                                        </h4>
-                                        <p className="text-[10px] text-gray-500 font-light mt-0.5">
-                                            {z.description}
-                                        </p>
-                                    </div>
-                                    <span className="bg-skylight-green text-white text-[9px] font-bold px-2.5 py-1 rounded-lg whitespace-nowrap">
-                                        View Details
-                                    </span>
-                                </Link>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            </section >
-
-            {/* Stargazing & Community Events Calendar */}
-            < section className="bg-[#0f2010] text-[#fafbfa] py-20 px-4 md:px-8" >
-                <div className="container mx-auto max-w-5xl">
-                    <div className="flex flex-col md:flex-row md:items-end justify-between mb-16">
-                        <div>
-                            <span className="text-[10px] font-bold tracking-widest text-skylight-gold uppercase">
-                                Gatherings &amp; Expeditions
-                            </span>
-                            <h2 className="text-3xl md:text-4xl font-display font-extrabold text-white mt-2">
-                                Upcoming Events
-                            </h2>
-                        </div>
-                        <Link
-                            href="/contact"
-                            className="text-xs text-skylight-gold hover:text-white font-semibold uppercase tracking-widest flex items-center gap-1.5 mt-4 md:mt-0"
-                        >
-                            Propose an Event <ChevronRight className="w-4 h-4" />
-                        </Link>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        {events.map((e) => (
-                            <div
-                                key={e.id}
-                                className="bg-skylight-dark/60 rounded-3xl border border-skylight-gold/10 p-8 shadow-xl flex flex-col justify-between space-y-6"
-                            >
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <span className="flex items-center gap-1.5 text-xs text-skylight-gold font-bold">
-                                            <Calendar className="w-4 h-4" />
-                                            {new Date(e.date).toLocaleDateString("en-US", {
-                                                month: "long",
-                                                day: "numeric",
-                                                year: "numeric",
-                                            })}
-                                        </span>
-                                        <span className="bg-skylight-green text-[#fafbfa] text-[9px] font-extrabold px-3 py-1 rounded-full border border-skylight-gold/30">
-                                            {e.price > 0 ? `Ticket: $${e.price.toFixed(0)}` : "Free Entry"}
-                                        </span>
-                                    </div>
-                                    <h3 className="font-display font-bold text-xl text-white">
-                                        {e.title}
-                                    </h3>
-                                    <p className="text-xs text-gray-400 font-light leading-relaxed">
-                                        {e.description}
-                                    </p>
-                                </div>
-
-                                <div className="border-t border-skylight-green/30 pt-4 flex items-center justify-between">
-                                    <div className="flex items-center gap-1 text-[10px] text-gray-400">
-                                        <MapPin className="w-3.5 h-3.5 text-skylight-gold" />
-                                        <span>Jaj Campfire Grounds</span>
-                                    </div>
-                                    <Link
-                                        href={`/events/${e.id}`}
-                                        className="premium-btn bg-skylight-gold text-skylight-dark hover:bg-white hover:text-skylight-green font-display font-bold text-[9px] tracking-widest px-6 py-2.5 transition-all"
-                                    >
-                                        VIEW DETAILS &amp; BOOK
-                                    </Link>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </section >
-
-            <FAQSection />
-            <Footer />
-        </>
-    );
+      {/* FAQ & Footer */}
+      <FAQSection />
+      <Footer />
+    </div>
+  );
 }

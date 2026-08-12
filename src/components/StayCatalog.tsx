@@ -52,18 +52,45 @@ export default function StayCatalog({
 }: Props) {
     const [selectedAcc, setSelectedAcc] = useState<Accommodation | null>(null);
 
+    const getTodayStr = () => {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, "0");
+        const dd = String(today.getDate()).padStart(2, "0");
+        return `${yyyy}-${mm}-${dd}`;
+    };
+
+    const getTomorrowStr = () => {
+        const d = new Date();
+        d.setDate(d.getDate() + 1);
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, "0");
+        const dd = String(d.getDate()).padStart(2, "0");
+        return `${yyyy}-${mm}-${dd}`;
+    };
+
     // Applied URL-synced filter states
     const [filterType, setFilterType] = useState(initialType || "ALL");
     const [filterGuests, setFilterGuests] = useState(initialGuests ? parseInt(initialGuests) : 2);
-    const [filterStartDate, setFilterStartDate] = useState(initialStartDate || "2026-06-15");
+    const [filterStartDate, setFilterStartDate] = useState(initialStartDate || getTodayStr());
 
     // UI Draft states (before applying) - allowing empty string "" so they can delete the box!
     const [draftType, setDraftType] = useState(initialType || "ALL");
     const [draftGuests, setDraftGuests] = useState<number | string>(initialGuests ? parseInt(initialGuests) : 2);
-    const [draftStartDate, setDraftStartDate] = useState(initialStartDate || "2026-06-15");
+    const [draftStartDate, setDraftStartDate] = useState(initialStartDate || getTodayStr());
 
-    const [startDate, setStartDate] = useState(initialStartDate || "2026-06-15");
-    const [endDate, setEndDate] = useState("2026-06-17");
+    const [startDate, setStartDate] = useState(initialStartDate || getTodayStr());
+    const [endDate, setEndDate] = useState(() => {
+        if (initialStartDate) {
+            const d = new Date(initialStartDate);
+            d.setDate(d.getDate() + 1);
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, "0");
+            const dd = String(d.getDate()).padStart(2, "0");
+            return `${yyyy}-${mm}-${dd}`;
+        }
+        return getTomorrowStr();
+    });
     const [peopleCount, setPeopleCount] = useState(initialGuests ? parseInt(initialGuests) : 2);
     const [selectedAddons, setSelectedAddons] = useState<{ addonId: string; quantity: number }[]>([]);
 
@@ -92,12 +119,13 @@ export default function StayCatalog({
     };
 
     const handleResetFilters = () => {
+        const todayStr = getTodayStr();
         setDraftType("ALL");
         setDraftGuests(2);
-        setDraftStartDate("2026-06-15");
+        setDraftStartDate(todayStr);
         setFilterType("ALL");
         setFilterGuests(2);
-        setFilterStartDate("2026-06-15");
+        setFilterStartDate(todayStr);
     };
 
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -135,7 +163,7 @@ export default function StayCatalog({
     useEffect(() => {
         setStartDate(filterStartDate);
         const d = new Date(filterStartDate);
-        d.setDate(d.getDate() + 2);
+        d.setDate(d.getDate() + 1);
         const yyyy = d.getFullYear();
         const mm = String(d.getMonth() + 1).padStart(2, "0");
         const dd = String(d.getDate()).padStart(2, "0");
@@ -150,10 +178,13 @@ export default function StayCatalog({
     useEffect(() => {
         if (!selectedAcc) return;
 
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-        const durationDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 3600 * 24));
-        const duration = durationDays > 0 ? durationDays : 1;
+        let duration = 1;
+        if (selectedAcc.type !== "PICNIC_DAY" && endDate && endDate > startDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            const durationDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 3600 * 24));
+            duration = durationDays > 0 ? durationDays : 1;
+        }
 
         let baseCost = 0;
         if (selectedAcc.pricingType === "PER_PERSON_PER_DAY" || selectedAcc.pricingType === "PER_PERSON_PER_NIGHT") {
@@ -177,15 +208,26 @@ export default function StayCatalog({
         setCalculatedPrice(baseCost + addonsCost);
     }, [selectedAcc, startDate, endDate, peopleCount, selectedAddons]);
 
-    const toggleAddon = (addonId: string) => {
+    const updateAddonQty = (addonId: string, delta: number) => {
         setSelectedAddons((prev) => {
-            const exists = prev.find((a) => a.addonId === addonId);
-            if (exists) {
+            const existing = prev.find((a) => a.addonId === addonId);
+            const currentQty = existing ? existing.quantity : 0;
+            const newQty = currentQty + delta;
+            if (newQty <= 0) {
                 return prev.filter((a) => a.addonId !== addonId);
             } else {
-                return [...prev, { addonId, quantity: 1 }];
+                if (existing) {
+                    return prev.map((a) => (a.addonId === addonId ? { ...a, quantity: newQty } : a));
+                } else {
+                    return [...prev, { addonId, quantity: newQty }];
+                }
             }
         });
+    };
+
+    const getAddonQty = (addonId: string) => {
+        const match = selectedAddons.find((a) => a.addonId === addonId);
+        return match ? match.quantity : 0;
     };
 
     const handleBookingSubmit = async (e: React.FormEvent) => {
@@ -247,11 +289,11 @@ export default function StayCatalog({
                     <CustomDropdown
                         value={draftType}
                         options={[
-                            { value: "ALL", label: "All Lodging Options" },
-                            { value: "INDIVIDUAL_CAMP", label: "Normal Campground Spot" },
-                            { value: "SCOUT_ZONE", label: "Scout Camp" },
-                            { value: "WOOD_TENT", label: "Wood Tents (1-4 Persons)" },
-                            { value: "BUNGALOW", label: "Bungalows (Coming Soon)" },
+                            { value: "ALL", label: "All Packages & Day Use" },
+                            { value: "PICNIC_DAY", label: "Day Picnic & Table Setup" },
+                            { value: "INDIVIDUAL_CAMP", label: "Family & Group Camping" },
+                            { value: "SCOUT_ZONE", label: "Scout & Youth Group Camping" },
+                            { value: "WOOD_TENT", label: "Wooden Tent Cabins (Glamping)" },
                         ]}
                         onChange={(val) => setDraftType(val)}
                     />
@@ -472,29 +514,51 @@ export default function StayCatalog({
                                     </div>
                                 </div>
 
-                                {/* Addons Selection Block */}
+                                {/* Addons Selection Block with Quantity Selectors */}
                                 {selectedAcc.addons.length > 0 && (
                                     <div className="border-t border-gray-100 pt-6">
                                         <span className="block text-[10px] font-bold uppercase tracking-widest text-skylight-green mb-3 flex items-center gap-1">
                                             <ShoppingBag className="w-4 h-4 text-skylight-gold" />
-                                            Campsite Selections & Addons
+                                            Gear &amp; Equipment Rental Addons
                                         </span>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             {selectedAcc.addons.map((a) => {
-                                                const isSelected = selectedAddons.some((sel) => sel.addonId === a.id);
+                                                const qty = getAddonQty(a.id);
                                                 return (
-                                                    <button
+                                                    <div
                                                         key={a.id}
-                                                        type="button"
-                                                        onClick={() => toggleAddon(a.id)}
-                                                        className={`p-3 text-left rounded-xl border text-xs flex justify-between items-center transition-all ${isSelected
-                                                            ? "bg-skylight-green-light border-skylight-green text-skylight-green font-semibold"
-                                                            : "bg-white border-gray-200 text-gray-600 hover:bg-[#fafbfa]"
-                                                            }`}
+                                                        className={`p-3.5 rounded-2xl border text-xs flex justify-between items-center transition-all ${
+                                                            qty > 0
+                                                                ? "bg-amber-50/80 border-amber-300 text-slate-800 shadow-sm"
+                                                                : "bg-white border-gray-200 text-gray-600 hover:bg-[#fafbfa]"
+                                                        }`}
                                                     >
-                                                        <span>{a.name}</span>
-                                                        <span className="font-bold text-skylight-green">${a.price} {a.priceType === "PER_NIGHT" ? "/nt" : ""}</span>
-                                                    </button>
+                                                        <div className="pr-2">
+                                                            <span className="font-bold text-skylight-green block">{a.name}</span>
+                                                            <span className="text-[10px] text-slate-500 font-semibold">
+                                                                ${a.price.toFixed(2)} {a.priceType === "PER_NIGHT" ? "/night" : ""}
+                                                            </span>
+                                                        </div>
+
+                                                        {/* Quantity Counter Controls */}
+                                                        <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-xl border border-slate-200 flex-shrink-0">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => updateAddonQty(a.id, -1)}
+                                                                className="w-7 h-7 rounded-lg bg-white font-extrabold text-xs text-slate-700 shadow-xs hover:bg-slate-200 transition-colors flex items-center justify-center cursor-pointer border-0"
+                                                            >
+                                                                -
+                                                            </button>
+                                                            <span className="w-5 text-center font-extrabold text-xs text-skylight-green">{qty}</span>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => updateAddonQty(a.id, 1)}
+                                                                className="w-7 h-7 rounded-lg bg-skylight-green font-extrabold text-xs text-white shadow-xs hover:bg-emerald-800 transition-colors flex items-center justify-center cursor-pointer border-0"
+                                                            >
+                                                                +
+                                                            </button>
+                                                        </div>
+                                                    </div>
                                                 );
                                             })}
                                         </div>

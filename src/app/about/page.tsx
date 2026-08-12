@@ -2,6 +2,20 @@ import React from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Info, MapPin, ShieldCheck, Heart, Users, Compass, Eye, ShieldAlert } from "lucide-react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "About Us | Premier Stargazing Sanctuary in Jaj, Mount Lebanon",
+  description:
+    "Learn about Skylight Village Jaj, Mount Lebanon's leading campsite at 1,200m altitude. Discover our wilderness story, Jaj Cedar Reserve proximity, and community scout grounds.",
+  keywords: [
+    "About Skylight Village",
+    "Jaj Mount Lebanon",
+    "attractions in Jaj",
+    "Jaj cedar reserve",
+    "best camping ground in Lebanon",
+  ],
+};
 
 export default function AboutPage() {
   return (
@@ -15,7 +29,7 @@ export default function AboutPage() {
             Our Wilderness Story
           </span>
           <h1 className="text-3xl md:text-5xl font-display font-extrabold mt-2 tracking-tight">
-            About Skylight Village
+            About Skylight Village Jaj
           </h1>
           <div className="w-12 h-1 bg-skylight-gold mx-auto mt-4" />
           <p className="text-xs md:text-sm text-gray-300 font-light max-w-xl mx-auto leading-relaxed mt-6">
@@ -28,7 +42,7 @@ export default function AboutPage() {
         <div className="container mx-auto max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <div className="space-y-6">
             <h2 className="text-2xl md:text-3xl font-display font-extrabold text-skylight-green">
-              Born from a Love of Mountains & Community
+              Born from a Love of Mountains &amp; Community
             </h2>
             <p className="text-xs text-gray-600 font-light leading-relaxed">
               Skylight Village was founded as a pristine escape nestled among Jaj's legendary mountaintops. Mapped at 1,200 meters above sea level, our location enjoys zero light pollution and crisp, cooling alpine air, making it Mount Lebanon's absolute best stargazing campsite.
@@ -59,76 +73,12 @@ export default function AboutPage() {
               </div>
               <div>
                 <h3 className="font-display font-bold text-base text-skylight-green">
-                  Scout Heritage
+                  Community &amp; Scout Grounds
                 </h3>
                 <p className="text-xs text-gray-500 font-light leading-relaxed mt-1">
-                  Featuring 2 dedicated scout sectors designed for safe gatherings, campfire structures, toilet access, and fresh spring water.
+                  Dedicated sectors for scout troops, corporate outdoor retreats, and large stargazing assemblies.
                 </p>
               </div>
-            </div>
-
-            <div className="flex gap-4">
-              <div className="octagon-clip bg-skylight-green p-3.5 text-skylight-gold flex-shrink-0">
-                <Eye className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-display font-bold text-base text-skylight-green">
-                  Upcoming Adventure
-                </h3>
-                <p className="text-xs text-gray-500 font-light leading-relaxed mt-1">
-                  We are expanding! Soon featuring extreme games, rope monkey bars, professional zip lines, and mountain obstacle trails.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Sustainable Core */}
-      <section className="bg-skylight-green-light/40 py-20 px-4 md:px-8 border-t border-skylight-green/5">
-        <div className="container mx-auto max-w-4xl text-center">
-          <span className="text-[10px] font-bold tracking-widest text-skylight-green uppercase">
-            Conservation & Comfort
-          </span>
-          <h2 className="text-2xl md:text-3xl font-display font-extrabold text-skylight-green mt-2 mb-12">
-            Pillars of the Skylight Experience
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="space-y-3">
-              <div className="w-12 h-12 bg-skylight-green rounded-full flex items-center justify-center text-skylight-gold mx-auto shadow-md">
-                <ShieldCheck className="w-6 h-6" />
-              </div>
-              <h4 className="font-display font-bold text-sm text-skylight-green uppercase tracking-wide">
-                Hygienic Toilets & Showers
-              </h4>
-              <p className="text-xs text-gray-500 font-light leading-relaxed">
-                Comfortable sanitary installations with running hot water, providing comfort in the heart of raw nature.
-              </p>
-            </div>
-
-            <div className="space-y-3">
-              <div className="w-12 h-12 bg-skylight-green rounded-full flex items-center justify-center text-skylight-gold mx-auto shadow-md">
-                <MapPin className="w-6 h-6" />
-              </div>
-              <h4 className="font-display font-bold text-sm text-skylight-green uppercase tracking-wide">
-                Natural Spring Water
-              </h4>
-              <p className="text-xs text-gray-500 font-light leading-relaxed">
-                Our site feeds from fresh local spring water reservoirs, filtered and available for campers.
-              </p>
-            </div>
-
-            <div className="space-y-3">
-              <div className="w-12 h-12 bg-skylight-green rounded-full flex items-center justify-center text-skylight-gold mx-auto shadow-md">
-                <Heart className="w-6 h-6" />
-              </div>
-              <h4 className="font-display font-bold text-sm text-skylight-green uppercase tracking-wide">
-                Eco Responsibility
-              </h4>
-              <p className="text-xs text-gray-500 font-light leading-relaxed">
-                We strictly enforce "leave no trace" ethics to protect forest critters, local trees, and alpine ecology.
-              </p>
             </div>
           </div>
         </div>

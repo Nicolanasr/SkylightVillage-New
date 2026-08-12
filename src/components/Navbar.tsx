@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Compass, Menu, X, Tent, Phone, MapPin, ImageIcon, Info, BookOpen, ForkKnife } from "lucide-react";
+import { Compass, Menu, X, Tent, Phone, MapPin, ImageIcon, Info, BookOpen, Utensils } from "lucide-react";
 import Image from "next/image";
 
 export default function Navbar() {
@@ -27,8 +27,16 @@ export default function Navbar() {
                     <Link href="/stay" className="hover:text-skylight-gold transition-colors flex items-center gap-1">
                         <Tent className="w-3.5 h-3.5" /> Stay
                     </Link>
-                    <Link href="/restaurant" className="hover:text-skylight-gold transition-colors flex items-center gap-1">
-                        <ForkKnife className="w-3.5 h-3.5" /> Restaurant
+                    <a
+                        href="https://menu.skylightvillagelb.com/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:text-skylight-gold transition-colors flex items-center gap-1"
+                    >
+                        <Utensils className="w-3.5 h-3.5 " /> Digital Menu
+                    </a>
+                    <Link href="/events" className="hover:text-skylight-gold transition-colors flex items-center gap-1">
+                        <Compass className="w-3.5 h-3.5" /> Events
                     </Link>
                     <Link href="/gallery" className="hover:text-skylight-gold transition-colors flex items-center gap-1">
                         <ImageIcon className="w-3.5 h-3.5" /> Gallery
@@ -46,7 +54,7 @@ export default function Navbar() {
                         href="/stay"
                         className="premium-btn bg-skylight-green text-white hover:bg-skylight-gold hover:text-skylight-dark transition-all duration-300 px-6 py-2.5 inline-block font-display font-bold tracking-widest text-[10px] hover:-translate-y-0.5"
                     >
-                        BOOK NOW
+                        BOOK STAY
                     </Link>
                 </nav>
 
@@ -66,8 +74,17 @@ export default function Navbar() {
                         <Link onClick={() => setIsOpen(false)} href="/stay" className="py-2 hover:text-skylight-gold transition-colors">
                             Stay & Campgrounds
                         </Link>
-                        <Link onClick={() => setIsOpen(false)} href="/restaurant" className="py-2 hover:text-skylight-gold transition-colors">
-                            Restaurant & Menus
+                        <a
+                            onClick={() => setIsOpen(false)}
+                            href="https://menu.skylightvillagelb.com/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="py-2 hover:text-skylight-gold transition-colors"
+                        >
+                            Digital Menu ↗
+                        </a>
+                        <Link onClick={() => setIsOpen(false)} href="/events" className="py-2 hover:text-skylight-gold transition-colors">
+                            Events & Gatherings
                         </Link>
                         <Link onClick={() => setIsOpen(false)} href="/gallery" className="py-2 hover:text-skylight-gold transition-colors">
                             Scenic Gallery

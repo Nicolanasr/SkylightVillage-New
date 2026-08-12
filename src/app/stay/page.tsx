@@ -4,6 +4,21 @@ import Footer from "@/components/Footer";
 import StayCatalog from "@/components/StayCatalog";
 import db from "@/lib/db";
 import { Sparkles } from "lucide-react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Campgrounds & Wooden Cabins | Best Camping Ground in Jaj, Lebanon",
+  description:
+    "Book your stay at Skylight Village in Jaj, Mount Lebanon (1,200m altitude). Choose from private campgrounds, wooden A-frame cabins, and scout camp fields.",
+  keywords: [
+    "best camping ground in Lebanon",
+    "Jaj camping ground",
+    "wood cabins Lebanon",
+    "wooden tents Jaj",
+    "scout camp Jaj",
+    "Mount Lebanon campgrounds",
+  ],
+};
 
 export const revalidate = 0; // Fresh database items on every load
 
@@ -52,18 +67,18 @@ export default async function StayPage({ searchParams }: PageProps) {
             Nature Immersion Lodges
           </span>
           <h1 className="text-3xl md:text-5xl font-display font-extrabold mt-2 tracking-tight drop-shadow-md">
-            Campgrounds & Wooden Tents
+            Campgrounds &amp; Wooden Tents in Jaj
           </h1>
           <div className="w-12 h-1 bg-skylight-gold mx-auto mt-4" />
           <p className="text-xs md:text-sm text-gray-300 font-light max-w-xl mx-auto leading-relaxed mt-6 drop-shadow-sm">
-            Compare camp spaces, individual clearings, wood tents, and upcoming octagon bungalows. Book dynamic options including sleeping bag rentals and firewood bundles.
+            Compare camp spaces, individual clearings, wood tents, and upcoming octagon bungalows in Mount Lebanon's top stargazing campsite.
           </p>
         </div>
       </section>
 
-      <section className="py-12 px-4 md:px-8 relative z-20">
-        <div className="container mx-auto max-w-5xl">
-          <StayCatalog 
+      <section className="py-12 px-4 md:px-8">
+        <div className="container mx-auto max-w-6xl">
+          <StayCatalog
             accommodations={accommodations}
             bookings={serializedBookings}
             initialType={resolvedParams.type}
