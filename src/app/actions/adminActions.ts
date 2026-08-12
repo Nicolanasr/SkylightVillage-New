@@ -3,6 +3,7 @@
 import db from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
+import { sendCustomerConfirmationNotification } from "@/lib/notifications";
 
 // ==========================================
 // 1. SESSION & AUTHENTICATION ACTIONS
@@ -369,6 +370,21 @@ export async function updateBookingDetails(
         notes: data.notes,
       }
     });
+
+    // Trigger automated backend customer notification when status is set to CONFIRMED
+    if (data.status === "CONFIRMED") {
+      sendCustomerConfirmationNotification({
+        customerName: data.customerName,
+        customerEmail: data.customerEmail || booking.customerEmail,
+        customerPhone: data.customerPhone,
+        accommodationName: booking.accommodation?.name || "Stay Reservation",
+        startDate: start.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+        endDate: end.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+        peopleCount: Number(data.peopleCount),
+        totalPrice: totalPrice || 0,
+        status: data.status,
+      }).catch((e) => console.error("Customer confirmation notification background error:", e));
+    }
 
     revalidatePath("/");
     revalidatePath("/dashboard/admin");

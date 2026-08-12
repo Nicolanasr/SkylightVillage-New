@@ -58,7 +58,14 @@ export default async function AdminDashboardPage() {
       orderBy: { name: "asc" },
     }),
     db.booking.findMany({
-      include: { accommodation: true },
+      include: {
+        accommodation: true,
+        addons: {
+          include: {
+            addon: true,
+          },
+        },
+      },
       orderBy: { startDate: "desc" },
     }),
     db.restaurantBooking.findMany({

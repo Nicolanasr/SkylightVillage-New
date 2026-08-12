@@ -4,6 +4,8 @@ import React, { useState, useEffect } from "react";
 import { createStayBooking } from "@/app/actions";
 import CustomDatePicker from "./CustomDatePicker";
 import CustomDropdown from "./CustomDropdown";
+import WhatsAppIcon from "./WhatsAppIcon";
+import { getNewStayAdminNotificationLink } from "@/lib/whatsapp";
 import { ShoppingBag, AlertTriangle, CheckCircle2, User, Mail, Phone, Loader2, Users } from "lucide-react";
 
 interface Addon {
@@ -87,6 +89,7 @@ export default function StayBookingForm({
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [bookingSuccess, setBookingSuccess] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
+    const [lastSubmittedData, setLastSubmittedData] = useState<{ customerName: string; customerPhone: string } | null>(null);
     const [calculatedPrice, setCalculatedPrice] = useState(0);
     const [fullDailyPrice, setFullDailyPrice] = useState(0);
     const [isNightlyDiscount, setIsNightlyDiscount] = useState(false);
@@ -172,11 +175,15 @@ export default function StayBookingForm({
             return;
         }
 
+        const name = (e.target as any).customerName.value;
+        const phone = (e.target as any).customerPhone.value;
+        setLastSubmittedData({ customerName: name, customerPhone: phone });
+
         const res = await createStayBooking({
             accommodationId: accommodation.id,
-            customerName: (e.target as any).customerName.value,
+            customerName: name,
             customerEmail: (e.target as any).customerEmail.value || undefined,
-            customerPhone: (e.target as any).customerPhone.value,
+            customerPhone: phone,
             groupName: (e.target as any).groupName?.value || undefined,
             startDate,
             endDate,
@@ -194,13 +201,16 @@ export default function StayBookingForm({
 
     if (bookingSuccess) {
         return (
-            <div className="text-center py-12 space-y-4">
-                <CheckCircle2 className="w-16 h-16 text-skylight-green mx-auto" />
+            <div className="text-center py-10 space-y-4">
+                <CheckCircle2 className="w-16 h-16 text-skylight-green mx-auto animate-bounce" />
                 <h3 className="font-display font-extrabold text-2xl text-skylight-green">
                     Stay Reserved!
                 </h3>
                 <p className="text-xs text-gray-500 font-light leading-relaxed max-w-sm mx-auto">
-                    Your reservation for <span className="font-bold text-skylight-green">{accommodation.name}</span> is confirmed. Total estimated checkout price: <span className="font-bold text-skylight-green">${calculatedPrice.toFixed(2)}</span>.
+                    Thank you! Your reservation for <span className="font-bold text-skylight-green">{accommodation.name}</span> has been logged. Total estimated checkout price: <span className="font-bold text-skylight-green">${calculatedPrice.toFixed(2)}</span>.
+                </p>
+                <p className="text-[11px] text-slate-400 font-medium">
+                    Our team in Jaj will review your booking and send you a confirmation message shortly.
                 </p>
             </div>
         );

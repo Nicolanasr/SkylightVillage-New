@@ -2,6 +2,7 @@
 
 import db from "@/lib/db";
 import { revalidatePath } from "next/cache";
+import { sendAdminNewBookingNotification } from "@/lib/notifications";
 
 // 1. Campsite / Stay Booking Action
 export async function createStayBooking(data: {
@@ -101,6 +102,25 @@ export async function createStayBooking(data: {
         },
       },
     });
+
+    // Trigger automated backend notifications to admin (email & messaging)
+    const addonsSummary = selectionsToInsert.map((s) => {
+      const match = acc.addons.find((a) => a.id === s.addonId);
+      return `${match?.name || "Addon"} (Qty: ${s.quantity})`;
+    });
+
+    sendAdminNewBookingNotification({
+      bookingId: booking.id,
+      customerName: data.customerName,
+      customerPhone: data.customerPhone,
+      customerEmail: data.customerEmail,
+      accommodationName: acc.name,
+      startDate: data.startDate,
+      endDate: data.endDate,
+      peopleCount: data.peopleCount,
+      totalPrice,
+      addonsList: addonsSummary,
+    }).catch((e) => console.error("Admin notification background error:", e));
 
     revalidatePath("/");
     revalidatePath("/stay");

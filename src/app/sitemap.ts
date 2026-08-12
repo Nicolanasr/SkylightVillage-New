@@ -5,15 +5,22 @@ import { articlesData } from "@/app/blog/[slug]/page";
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://skylightvillagelb.com";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // Fetch dynamic accommodation slugs
-  const accommodations = await db.accommodation.findMany({
-    select: { slug: true },
-  });
+  let accommodations: { slug: string }[] = [];
+  let events: { id: string }[] = [];
 
-  // Fetch dynamic events
-  const events = await db.event.findMany({
-    select: { id: true },
-  });
+  try {
+    // Fetch dynamic accommodation slugs
+    accommodations = await db.accommodation.findMany({
+      select: { slug: true },
+    });
+
+    // Fetch dynamic events
+    events = await db.event.findMany({
+      select: { id: true },
+    });
+  } catch (err) {
+    console.error("Sitemap DB fetch fallback:", err);
+  }
 
   const accommodationUrls = accommodations.map((acc) => ({
     url: `${baseUrl}/stay/${acc.slug}`,
