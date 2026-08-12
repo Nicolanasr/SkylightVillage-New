@@ -6,6 +6,7 @@ import FAQSection from "@/components/FAQSection";
 import GoogleReviewsBanner from "@/components/GoogleReviewsBanner";
 import TestimonialSlider from "@/components/TestimonialSlider";
 import AccommodationsSlider from "@/components/AccommodationsSlider";
+import StargazingBarometer from "@/components/StargazingBarometer";
 import LocalAttractionsList from "@/components/LocalAttractionsList";
 import db from "@/lib/db";
 import {
@@ -338,6 +339,11 @@ export default async function HomePage() {
           <LocalAttractionsList attractions={attractions} />
         </div>
       </section>
+
+      {/* =========================================================================
+          LIVE STARGAZING & CELESTIAL LUNAR BAROMETER (1,200m Altitude)
+         ========================================================================= */}
+      <StargazingBarometer />
 
       {/* =========================================================================
           TESTIMONIALS & GUEST REVIEWS

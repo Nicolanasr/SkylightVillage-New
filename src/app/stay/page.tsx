@@ -2,6 +2,7 @@ import React from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import StayCatalog from "@/components/StayCatalog";
+import StargazingBarometer from "@/components/StargazingBarometer";
 import db from "@/lib/db";
 import { Sparkles } from "lucide-react";
 import type { Metadata } from "next";
@@ -87,6 +88,8 @@ export default async function StayPage({ searchParams }: PageProps) {
           />
         </div>
       </section>
+
+      <StargazingBarometer />
 
       <Footer />
     </>
