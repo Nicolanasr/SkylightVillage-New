@@ -1,5 +1,6 @@
 import { MetadataRoute } from "next";
 import db from "@/lib/db";
+import { articlesData } from "@/app/blog/[slug]/page";
 
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://skylightvillagelb.com";
 
@@ -26,6 +27,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: new Date(),
     changeFrequency: "weekly" as const,
     priority: 0.7,
+  }));
+
+  const blogUrls = Object.keys(articlesData).map((slug) => ({
+    url: `${baseUrl}/blog/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: "weekly" as const,
+    priority: 0.8,
   }));
 
   const staticUrls = [
@@ -69,9 +77,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${baseUrl}/blog`,
       lastModified: new Date(),
       changeFrequency: "weekly" as const,
-      priority: 0.6,
+      priority: 0.7,
     },
   ];
 
-  return [...staticUrls, ...accommodationUrls, ...eventUrls];
+  return [...staticUrls, ...accommodationUrls, ...eventUrls, ...blogUrls];
 }

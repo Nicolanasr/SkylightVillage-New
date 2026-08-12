@@ -19,13 +19,25 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
     const { slug } = await params;
-    const acc = await db.accommodation.findUnique({ where: { slug } });
-    if (!acc) return { title: "Lodging Not Found | Skylight Village" };
+    const acc = await db.accommodation.findUnique({ 
+        where: { slug },
+        include: { images: true }
+    });
+    if (!acc) return { title: "Lodging Not Found | Skylight Village Jaj" };
+
+    const firstImg = acc.images && acc.images.length > 0
+        ? acc.images[0].imageUrl
+        : "https://images.unsplash.com/photo-1504632348771-974e356b80af?q=80&w=1200&auto=format&fit=crop";
 
     return {
-        title: `${acc.name} | Skylight Village Jaj`,
-        description: `Book your stay at ${acc.name} in Skylight Village, Mount Lebanon. Enjoy premium campgrounds, wood tents, spring water, and hot showers at 1,200m altitude.`,
-        keywords: [acc.name, "mountain lodging", "camping Lebanon", "Jaj bungalows", "scout campgrounds"],
+        title: `${acc.name} in Jaj, Mount Lebanon | Skylight Village`,
+        description: `Book ${acc.name} at Skylight Village in Jaj, Mount Lebanon (1,200m altitude). Base rate: $${acc.basePrice}. Clean spring water, hot showers, campfire spots near Jaj Cedar Reserve.`,
+        keywords: [acc.name, "mountain lodging Jaj", "camping Lebanon", "Jaj wood cabins", "scout campgrounds Jbeil", "day picnic Jaj"],
+        openGraph: {
+            title: `${acc.name} | Skylight Village Jaj, Lebanon`,
+            description: `Book your stay at ${acc.name} in Jaj, Mount Lebanon (1,200m altitude).`,
+            images: [{ url: firstImg, alt: acc.name }],
+        },
     };
 }
 
@@ -72,8 +84,28 @@ export default async function StayDetailPage({ params, searchParams }: PageProps
 
     const acc = rawAcc as unknown as AccommodationWithDetails;
 
+    // Schema.org Product & Offer JSON-LD
+    const productJsonLd = {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        "name": acc.name,
+        "description": acc.description || `Book ${acc.name} at Skylight Village in Jaj, Mount Lebanon (1,200m altitude).`,
+        "image": acc.images && acc.images.length > 0 ? acc.images[0].imageUrl : "https://images.unsplash.com/photo-1504632348771-974e356b80af?q=80&w=1200&auto=format&fit=crop",
+        "offers": {
+            "@type": "Offer",
+            "priceCurrency": "USD",
+            "price": acc.basePrice,
+            "availability": "https://schema.org/InStock",
+            "url": `https://skylightvillagelb.com/stay/${acc.slug}`
+        }
+    };
+
     return (
         <>
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+            />
             <Navbar />
 
             {/* Hero Header */}

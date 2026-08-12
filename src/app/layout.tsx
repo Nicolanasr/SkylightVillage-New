@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     template: "%s | Skylight Village Jaj, Lebanon",
   },
   description:
-    "Mount Lebanon's top stargazing campsite and day picnic ground in Jaj (Jbeil District, 1,200m altitude). Pitch your tent, stay in wooden cabins, host scout group camps, rent picnic tables, and enjoy traditional Lebanese grill near Jaj Cedar Reserve.",
+    "Mount Lebanon's top stargazing campsite and day picnic ground in Jaj (Jbeil District, 1,200m altitude). Pitch your tent, stay in wooden cabins, host scout group camps, rent picnic tables, and enjoy traditional Lebanese grill near Jaj Cedar Reserve. تخييم في لبنان وأماكن بيكنيك في جبيل",
   keywords: [
     "best camping ground in Lebanon",
     "Jaj camping ground",
@@ -43,6 +43,11 @@ export const metadata: Metadata = {
     "camping spots Jaj",
     "rent tables and chairs picnic Jaj",
     "family picnic spots Jbeil Mount Lebanon",
+    "تخييم في لبنان",
+    "محمية أرز جاج",
+    "أماكن بيكنيك في جبيل",
+    "شاليهات خشب جاج",
+    "مخيم كشافة لبنان",
   ],
   authors: [{ name: "Skylight Village Jaj" }],
   creator: "Skylight Village Jaj",
@@ -99,7 +104,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Schema.org JSON-LD Structured Data for LocalBusiness, Campground & FAQPage
+  // Schema.org JSON-LD Structured Data for LocalBusiness, Campground, Breadcrumbs & FAQPage
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
@@ -130,6 +135,10 @@ export default function RootLayout({
           "Mount Lebanon",
           "Lebanon"
         ],
+        "sameAs": [
+          "https://instagram.com/skylightvillagelb",
+          "https://menu.skylightvillagelb.com"
+        ],
         "description": "Family-managed camping ground, wooden cabins, scout troop fields, and outdoor day picnic area located 1,200 meters above sea level in Jaj, Jbeil District, Mount Lebanon near the Jaj Cedar Reserve.",
         "amenityFeature": [
           { "@type": "LocationFeatureSpecification", "name": "Camping Ground Spots", "value": true },
@@ -139,6 +148,30 @@ export default function RootLayout({
           { "@type": "LocationFeatureSpecification", "name": "Firewood & BBQ Gear Rentals", "value": true },
           { "@type": "LocationFeatureSpecification", "name": "Stargazing Sanctuary", "value": true },
           { "@type": "LocationFeatureSpecification", "name": "Near Jaj Cedar Reserve", "value": true }
+        ]
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": `${siteUrl}/#breadcrumbs`,
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": siteUrl
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Campground & Lodging",
+            "item": `${siteUrl}/stay`
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": "Lebanon Outdoor Blog",
+            "item": `${siteUrl}/blog`
+          }
         ]
       },
       {

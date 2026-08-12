@@ -1,9 +1,12 @@
 import React from "react";
 import Link from "next/link";
-import { Tent, Phone, Mail, MapPin, Star, Heart } from "lucide-react";
+import { Tent, Phone, Mail, MapPin, Star, Heart, MessageSquareHeart, ExternalLink } from "lucide-react";
 import Image from "next/image";
 
 export default function Footer() {
+    const googleSearchUrl =
+        "https://www.google.com/maps/search/?api=1&query=Skylight+Village+Jaj+Lebanon";
+
     return (
         <footer className="w-full bg-[#0d1c0e] text-[#fafbfa] pt-16 pb-8 border-t border-skylight-green/30 mt-auto">
             <div className="container mx-auto px-4 md:px-8 grid grid-cols-1 md:grid-cols-4 gap-12 border-b border-skylight-green/10 pb-12">
@@ -21,7 +24,7 @@ export default function Footer() {
                     </p>
                     <div className="flex items-center gap-1.5 text-xs text-skylight-gold font-semibold pt-1">
                         <Star className="w-4 h-4 fill-skylight-gold text-skylight-gold" />
-                        <span>Stargazing Sanctuary</span>
+                        <span>Stargazing Sanctuary &bull; 4.9 ★ on Google</span>
                     </div>
                 </div>
 
@@ -85,20 +88,24 @@ export default function Footer() {
                     </ul>
                 </div>
 
-                {/* Scout & Campsite info */}
+                {/* Google Reviews & Scout CTA */}
                 <div>
                     <h4 className="font-display font-bold text-xs uppercase tracking-widest text-skylight-gold mb-4">
-                        Scouts & Gatherings
+                        Guest Reviews &amp; Scouts
                     </h4>
                     <p className="text-xs text-gray-400 leading-relaxed font-light mb-4">
-                        We feature two dedicated scout sectors (Zone 1 & 2) mapped for large campfire events, assemblies, and team building. Contact us for group discounts.
+                        Enjoyed your stay or day picnic at Skylight Village? Leave us a review on Google Maps to help others discover our grounds!
                     </p>
-                    <Link
-                        href="/contact"
-                        className="text-xs font-semibold text-skylight-gold border-b border-skylight-gold pb-0.5 hover:text-white hover:border-white transition-colors"
+                    <a
+                        href={googleSearchUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-400 hover:bg-amber-300 text-[#071308] font-display font-extrabold text-[10px] uppercase tracking-widest rounded-xl transition-all shadow-md mb-3"
                     >
-                        INQUIRE FOR GROUP EVENTS
-                    </Link>
+                        <MessageSquareHeart size={14} />
+                        <span>Leave a Google Review</span>
+                        <ExternalLink size={12} className="opacity-70" />
+                    </a>
                 </div>
             </div>
 

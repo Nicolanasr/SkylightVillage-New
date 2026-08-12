@@ -3,6 +3,7 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FAQSection from "@/components/FAQSection";
+import GoogleReviewsBanner from "@/components/GoogleReviewsBanner";
 import TestimonialSlider from "@/components/TestimonialSlider";
 import AccommodationsSlider from "@/components/AccommodationsSlider";
 import LocalAttractionsList from "@/components/LocalAttractionsList";
@@ -67,9 +68,9 @@ export default async function HomePage() {
           </div>
 
           <h1 className="text-4xl sm:text-6xl md:text-7xl font-display font-extrabold tracking-tight leading-[1.1] max-w-4xl text-white mb-6">
-            Take Memories, <br />
+            Skylight Village Jaj <br />
             <span className="bg-gradient-to-r from-amber-200 via-amber-400 to-amber-200 bg-clip-text text-transparent">
-              Leave Only Footprints.
+              Camping Ground, Cabins &amp; Picnic
             </span>
           </h1>
 
@@ -415,8 +416,9 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* FAQ & Footer */}
+      {/* FAQ, Google Reviews & Footer */}
       <FAQSection />
+      <GoogleReviewsBanner />
       <Footer />
     </div>
   );
